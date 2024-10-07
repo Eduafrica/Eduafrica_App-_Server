@@ -1,0 +1,115 @@
+swagger: '2.0'
+info: 
+  title: EduAfric API Documentation
+  description: API documentation for EduAfric. Each request comes with a cookie sent from the client.
+  version: 1.0
+  contact: 
+    email: successakinyemi365@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://apache.org/'
+host: api.eduaafric.com  # Replace with your actual host
+basePath: /                # Base path for all API endpoints
+schemes:
+  - http
+  - https
+
+paths:
+  /:
+    get:
+      summary: Home GET request
+      description: The first request to check server
+      responses:
+        200:
+          description: Success
+
+  /api/auth/register:
+    post:
+      summary: Register new user
+      description: Register a user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+              - firstName
+              - lastName
+              - confirmPassword
+              - accountType
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+              firstName:
+                type: string
+              lastName:
+                type: string
+              confirmPassword:
+                type: string
+              accountType:
+                type: string
+              fromOrganisation:
+                type: boolean *Optional
+      responses:
+        201: 
+          description: Signup successful but account not verified
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/login:
+    post:
+      summary: User Login
+      description: Login a user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200: 
+          description: Signup successful but account not verified
+        201: 
+          description: Signup successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/auth/verifyOtp:
+    post:
+      summary: Verify User account with OTP
+      description: Verify User account
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - otp
+            properties:
+              otp:
+                type: string
+      responses:
+        200: 
+          description: OTP verified Account acitvated
+        400:
+          description: User error
+        500: 
+          description: Server error

@@ -1,0 +1,7 @@
+{
+    "ext": "js,yaml",
+    "watch": [
+      "path/to/your/yaml/files"
+    ]
+  }
+  
