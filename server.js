@@ -19,6 +19,7 @@ app.use(express.json())
 // CORS setup
 const allowedOrigins = [
     process.env.CLIENT_URL,
+    process.env.SERVER_URL,
 ];
 
 const corsOptions = {
@@ -26,7 +27,7 @@ const corsOptions = {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            callback(new Error('Not allowed by CORS'));
+            callback(new Error('Not allowed by CORS', 'ORIGIN>',origin));
         }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],

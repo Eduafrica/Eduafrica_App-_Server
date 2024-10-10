@@ -5,7 +5,13 @@ const CourseContentSchema = new mongoose.Schema({
         type: String,
         required: [ true, 'Cousre Id is required']
     },
-
+    slugCode: {
+        type: String,
+        unique: [true, 'slug Code must be unique']
+    },
+    students: {
+        type: Array
+    },
     sections: [
         {
             sectionTitle: {
@@ -35,3 +41,6 @@ const CourseContentSchema = new mongoose.Schema({
 },
 { timestamps: true }
 )
+
+const CourseContentModel = mongoose.model('CourseContent', CourseContentSchema)
+export default CourseContentModel

@@ -65,7 +65,7 @@ const CourseSchema = new mongoose.Schema({
     ],
     studentLevel: {
         type: String,
-        enum: [ 'Beginners', 'Intermediate', 'Advanced']
+        enum: [ 'Beginner', 'Intermediate', 'Advanced']
     },
     skillsToGain: {
         type: Array

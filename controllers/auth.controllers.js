@@ -1,6 +1,6 @@
 import {  OAuth2Client } from "google-auth-library"
 import { registerMail } from "../middleware/sendEmail.js";
-import { generateOtp } from "../middleware/generateOtp.js";
+import { generateOtp } from "../middleware/utils.js";
 import OtpModel from "../models/Otp.js";
 import UserModel from "../models/User.js";
 

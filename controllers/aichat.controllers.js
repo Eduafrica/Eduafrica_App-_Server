@@ -131,6 +131,9 @@ export async function aiChat(req, res) {
 export async function aiChat(req, res) {
     const { message } = req.body
 
+    if(!message){
+        return res.status(400).json({ success: false, data: 'Invalid message length' })
+    }
     const _id = '1234567'
 
     const userData = {
