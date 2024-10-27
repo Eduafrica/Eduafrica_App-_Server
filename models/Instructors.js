@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import bcryptjs from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 
-const UserSchema = new mongoose.Schema({
+const InstructorSchema = new mongoose.Schema({
     userName: {
         type: String
     },
@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
     },
     accountType: {
         type: String,
-        default: 'student'
+        default: 'instructor'
     },
     aboutMe: {
         type: String
@@ -51,7 +51,7 @@ const UserSchema = new mongoose.Schema({
 {timestamps: true}
 )
 
-UserSchema.pre('save', async function(next){
+InstructorSchema.pre('save', async function(next){
     if(!this.isModified('password')) {
         return next();
     };
@@ -65,15 +65,15 @@ UserSchema.pre('save', async function(next){
     }
 })
 
-UserSchema.methods.matchStudentPasswords = async function(password){
+InstructorSchema.methods.matchStudentPasswords = async function(password){
     return await bcryptjs.compare(password, this.password)
 }
 
-UserSchema.methods.getStudentSignedToken = function(){
+InstructorSchema.methods.getStudentSignedToken = function(){
     return jsonwebtoken.sign({ id: this._id, accountType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
 }
 
-UserSchema.methods.getStudentResetPasswordToken = function(){
+InstructorSchema.methods.getStudentResetPasswordToken = function(){
     const resetToken = crypto.randomBytes(20).toString('hex');
 
     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
@@ -83,5 +83,5 @@ UserSchema.methods.getStudentResetPasswordToken = function(){
 }
 
 
-const UserModel =  mongoose.model('user', UserSchema);
-export default UserModel
+const InstructorModel =  mongoose.model('instructor', InstructorSchema);
+export default InstructorModel

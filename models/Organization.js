@@ -3,15 +3,10 @@ import crypto from 'crypto'
 import bcryptjs from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 
-const UserSchema = new mongoose.Schema({
-    userName: {
-        type: String
-    },
-    firstName: {
-        type: String
-    },
-    lastName: {
-        type: String
+
+const organizationSchema = new mongoose.Schema({
+    name: {
+        type: String,
     },
     password: {
         type: String
@@ -21,37 +16,26 @@ const UserSchema = new mongoose.Schema({
         required: [ true,  'Email address is required' ],
         unique: [ true, 'Email address already exist' ]
     },
-    phoneNumber: {
-        type: String,
-        unique: [ true, 'Phone number is already exist' ]
-    },
-    profileImg: {
-        type: String,
-    },
-    totalTransaction: {
-        type: Number
-    },
     accountType: {
         type: String,
-        default: 'student'
+        default: 'organization'
     },
-    aboutMe: {
+    fromOrganisation: {
+        type: Boolean,
+        default: false
+    },
+    organisationName: {
         type: String
     },
-    verified: {
-        type: Boolean,
-        default: false
+    organisationId: {
+        type: String
     },
-    blocked: {
-        type: Boolean,
-        default: false
-    }
 },
 {minimize: false},
 {timestamps: true}
 )
 
-UserSchema.pre('save', async function(next){
+organizationSchema.pre('save', async function(next){
     if(!this.isModified('password')) {
         return next();
     };
@@ -65,15 +49,15 @@ UserSchema.pre('save', async function(next){
     }
 })
 
-UserSchema.methods.matchStudentPasswords = async function(password){
+organizationSchema.methods.matchStudentPasswords = async function(password){
     return await bcryptjs.compare(password, this.password)
 }
 
-UserSchema.methods.getStudentSignedToken = function(){
+organizationSchema.methods.getStudentSignedToken = function(){
     return jsonwebtoken.sign({ id: this._id, accountType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
 }
 
-UserSchema.methods.getStudentResetPasswordToken = function(){
+organizationSchema.methods.getStudentResetPasswordToken = function(){
     const resetToken = crypto.randomBytes(20).toString('hex');
 
     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
@@ -83,5 +67,5 @@ UserSchema.methods.getStudentResetPasswordToken = function(){
 }
 
 
-const UserModel =  mongoose.model('user', UserSchema);
-export default UserModel
+const organizationModel =  mongoose.model('organization', organizationSchema);
+export default organizationModel

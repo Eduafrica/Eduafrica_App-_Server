@@ -6,6 +6,9 @@ import cors from 'cors'
 
 //IMPORT ROUTES
 import authRoute from './routes/auth.routes.js'
+import studentRoute from './routes/studentAuth.routes.js'
+import instructorRoute from './routes/studentAuth.routes.js'
+import organizationRoute from './routes/organizationAuth.routes.js'
 import aiChatRoute from './routes/aichat.routes.js'
 import courseRoute from './routes/course.routes.js'
 
@@ -58,6 +61,9 @@ app.get('/', (req, res) => {
 
 //ROUTES
 app.use('/api/auth', authRoute)
+app.use('/api/student', studentRoute)
+app.use('/api/instructor', instructorRoute)
+app.use('/api/organization', organizationRoute)
 app.use('/api/aiChat', aiChatRoute)
 app.use('/api/course', courseRoute)
 

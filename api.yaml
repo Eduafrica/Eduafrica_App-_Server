@@ -8,7 +8,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://apache.org/'
-host: localhost:9000
+host: https://eduafric.onrender.com
 basePath: /               
 schemes:
   - http
@@ -23,10 +23,10 @@ paths:
         200:
           description: Success
 
-  /api/auth/register:
+  /api/student/register:
     post:
-      summary: Register new user
-      description: Register a user
+      summary: Register new student
+      description: Register a student
       parameters:
         - name: body
           in: body
@@ -39,34 +39,155 @@ paths:
               - firstName
               - lastName
               - confirmPassword
-              - accountType
             properties:
               email:
-                type: string
-              password:
                 type: string
               firstName:
                 type: string
               lastName:
                 type: string
+              password:
+                type: string
               confirmPassword:
                 type: string
-              accountType:
-                type: string
-              fromOrganisation:
-                type: boolean *Optional
       responses:
         201: 
-          description: Signup successful but account not verified
+          description: Signup successful verification OTP sent to student email address
         400:
           description: User error
         500: 
           description: Server error
 
-  /api/auth/login:
+  /api/student/login:
     post:
-      summary: User Login
-      description: Login a user
+      summary: Student Login
+      description: Login a student
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200: 
+          description: Signup successful but account not verified
+        201: 
+          description: Signup successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/instructor/register:
+    post:
+      summary: Register new instructor
+      description: Register a instructor
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+              - firstName
+              - lastName
+              - confirmPassword
+            properties:
+              email:
+                type: string
+              firstName:
+                type: string
+              lastName:
+                type: string
+              password:
+                type: string
+              confirmPassword:
+                type: string
+      responses:
+        201: 
+          description: Signup successful verification OTP sent to instructor email address
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/instructor/login:
+    post:
+      summary: Instructor Login
+      description: Login a instructor
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        200: 
+          description: Signup successful but account not verified
+        201: 
+          description: Signup successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/register:
+    post:
+      summary: Register new organization
+      description: Register a organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - name
+              - organisationName
+              - password
+              - confirmPassword
+            properties:
+              email:
+                type: string
+              name:
+                type: string
+              organisationName:
+                type: string
+              password:
+                type: string
+              confirmPassword:
+                type: string
+      responses:
+        201: 
+          description: Signup successful verification OTP sent to organization's email address
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/login:
+    post:
+      summary: Organization Login
+      description: Login a organization
       parameters:
         - name: body
           in: body
