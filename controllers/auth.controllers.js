@@ -1,4 +1,5 @@
 import OtpModel from "../models/Otp.js"
+import StudentModel from "../models/Student.js"
 
 //VERIFY OTP
 export async function verifyOtp(req, res) {
@@ -12,7 +13,7 @@ export async function verifyOtp(req, res) {
             return res.status(404).json({ success: false, data: 'Invalid code' })
         }
 
-        const getUser = await UserModel.findOne({ _id: getOtp.userId })
+        const getUser = await StudentModel.findOne({ _id: getOtp.userId })
         
         getUser.verified = true
         await getUser.save()
