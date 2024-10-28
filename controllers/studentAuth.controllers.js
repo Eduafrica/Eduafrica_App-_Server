@@ -93,7 +93,7 @@ export async function login(req, res) {
             return res.status(401).json({ success: false, data: 'Invalid User'})
         }
 
-        const isMatch = await user.matchPasswords(password);
+        const isMatch = await user.matchStudentPasswords(password);
 
         if(!isMatch){
             return res.status(401).json({ success: false, data: 'Invalid credentials'})
@@ -127,7 +127,7 @@ export async function login(req, res) {
         }
 
         //SEND TOKEN
-        const token = user.getSignedToken();
+        const token = user.getStudentSignedToken();
         const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
         const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = user._doc
         res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
