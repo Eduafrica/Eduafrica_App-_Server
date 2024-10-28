@@ -46,12 +46,12 @@ export async function registerUser(req, res) {
         }
 
         const generatedStudentCode = await generateUniqueCode(6)
-        console.log('STUDENT CODE>>', `AFRIC${generatedStudentCode}`)
+        console.log('STUDENT CODE>>', `EA${generatedStudentCode}`)
 
-        const user = await Studentmodel.create({ name, password, email, displayName, allowNotifications, intrestedCourses, preferredLanguage, country, studentID: `EA${generatedStudentCode}` });
+        const user = await StudentModel.create({ name, password, email, displayName, allowNotifications, intrestedCourses, preferredLanguage, country, studentID: `EA${generatedStudentCode}` });
         console.log('USER CREATED');
 
-        const otpCode = generateOtp(user._id)
+        const otpCode = await generateOtp(user._id)
         console.log('OTP', otpCode)
 
         try {

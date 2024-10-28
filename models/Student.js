@@ -20,7 +20,6 @@ const StudentSchema = new mongoose.Schema({
     },
     phoneNumber: {
         type: String,
-        unique: [ true, 'Phone number is already exist' ]
     },
     profileImg: {
         type: String,
