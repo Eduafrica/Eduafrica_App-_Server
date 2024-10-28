@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import AiChatModel from '../models/AiChat.js';
 import { v4 as uuidv4 } from 'uuid';
-import UserModel from '../models/User.js';
+import StudentModel from '../models/Student.js';
 
 const edtechafricAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 const zara = edtechafricAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
@@ -38,7 +38,7 @@ export async function aiChat(req, res) {
     let isUser
     if(user){
         const { id } = user
-        isUser = await UserModel.findById(id);
+        isUser = await StudentModel.findById(id);
     } else {
         chatId = uuidv4(); 
         res.cookie('chatsessionid', chatId, { maxAge: 900000, httpOnly: true });

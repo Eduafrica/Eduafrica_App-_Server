@@ -35,20 +35,29 @@ paths:
             type: object
             required:
               - email
+              - name
+              - country
+              - displayName
               - password
-              - firstName
-              - lastName
               - confirmPassword
             properties:
               email:
                 type: string
-              firstName:
+              name:
                 type: string
-              lastName:
+              country:
+                type: string
+              displayName:
                 type: string
               password:
                 type: string
               confirmPassword:
+                type: string
+              allowNotifications:
+                type: Boolean
+              intrestedCourses:
+                type: Array
+              preferredLanguage:
                 type: string
       responses:
         201: 

@@ -1,19 +1,34 @@
 import {  OAuth2Client } from "google-auth-library"
 import { registerMail } from "../middleware/sendEmail.js";
-import { generateOtp } from "../middleware/utils.js";
+import { generateOtp, generateUniqueCode } from "../middleware/utils.js";
 import OtpModel from "../models/Otp.js";
-import UserModel from "../models/User.js";
+import StudentModel from "../models/Student.js";
 
 
 //REGISTER USER
 export async function registerUser(req, res) {
-    const { firstName, lastName, password, confirmPassword, email } = req.body
-    if (!email || !password || !firstName ||!lastName || !confirmPassword) {
-        return res.status(400).json({ success: false, data: 'Please provide all required fields' });
+    const { displayName, name, password, confirmPassword, email, allowNotifications, intrestedCourses, preferredLanguage, country } = req.body
+    if (!email) {
+        return res.status(400).json({ success: false, data: 'Please your email address' });
+    }
+    if (!displayName) {
+        return res.status(400).json({ success: false, data: 'Please your display name' });
+    }
+    if (!password) {
+        return res.status(400).json({ success: false, data: 'Please provide a password' });
+    }
+    if (!confirmPassword) {
+        return res.status(400).json({ success: false, data: 'Confirm Password is required' });
+    }
+    if (!name) {
+        return res.status(400).json({ success: false, data: 'User name is required' });
+    }
+    if (!country) {
+        return res.status(400).json({ success: false, data: 'Provide a country' });
     }
 
-    if (password.length < 6) {
-        return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
+    if (password.length < 8) {
+        return res.status(400).json({ success: false, data: 'Passwords must be at least 8 characters long' });
     }
 
     const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
@@ -25,12 +40,15 @@ export async function registerUser(req, res) {
         return res.status(400).json({ success: false, data: 'Passwords do not match' });
     }
     try {
-        const existingEmail = await UserModel.findOne({ email });
+        const existingEmail = await StudentModel.findOne({ email });
         if (existingEmail) {
             return res.status(400).json({ success: false, data: 'Email already exists. Please use another email' });
         }
 
-        const user = await Studentmodel.create({ firstName, lastName, password, confirmPassword, email, fromOrganisation, accountType });
+        const generatedStudentCode = await generateUniqueCode(6)
+        console.log('STUDENT CODE>>', `AFRIC${generatedStudentCode}`)
+
+        const user = await Studentmodel.create({ name, password, email, displayName, allowNotifications, intrestedCourses, preferredLanguage, country, studentID: `EA${generatedStudentCode}` });
         console.log('USER CREATED');
 
         const otpCode = generateOtp(user._id)
@@ -38,14 +56,13 @@ export async function registerUser(req, res) {
 
         try {
             await registerMail({
-                username: `${user.firstName} ${user.lastName}`,
+                username: `${user.name}`,
                 userEmail: user.email,
                 subject: 'EDTRCH AFRIC SIGNUP SUCCESSFUL',
                 intro: 'Verify your Edtech Afric email address',
                 instructions: 'Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
                 outro: `If you did not Sign Up, please ignore this email and report.
                 `,
-                verifyUrl: verifyUrl,
                 otp: otpCode,
             });
 
@@ -70,7 +87,7 @@ export async function login(req, res) {
     }
 
     try {
-        const user = await UserModel.findOne({ email: email }).select('+password')
+        const user = await StudentModel.findOne({ email: email }).select('+password')
     
         if(!user){
             return res.status(401).json({ success: false, data: 'Invalid User'})
@@ -97,7 +114,6 @@ export async function login(req, res) {
                         instructions: 'Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
                         outro: `If you did not Sign Up, please ignore this email and report.
                         `,
-                        verifyUrl: verifyUrl,
                         otp: otpCode,
                     });
         

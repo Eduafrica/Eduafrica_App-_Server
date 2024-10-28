@@ -1,4 +1,4 @@
-import { generateCourseSlug } from "../middleware/utils.js"
+import { generateUniqueCode } from "../middleware/utils.js"
 import CourseModel from "../models/Course.js"
 import CourseCategoryModel from "../models/CourseCategories.js"
 
@@ -23,7 +23,7 @@ export async function newCourse(req, res) {
             return res.status(400).json({ success: false, data: '' })
         }
 
-        const generatedCourseSlug = await generateCourseSlug(6)
+        const generatedCourseSlug = await generateUniqueCode(6)
         console.log('COURSE SLUG>>', `AFRIC${generatedCourseSlug}`, generatedCourseSlug)
 
         const makeNewCourse = await CourseModel.create({

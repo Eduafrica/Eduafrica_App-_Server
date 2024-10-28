@@ -24,7 +24,7 @@ export async function generateOtp(userId) {
     return otp; 
 }
 
-export async function generateCourseSlug(length) {
+export async function generateUniqueCode(length) {
     const courseSlug = () => {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let slugCode = ''; 

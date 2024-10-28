@@ -3,14 +3,11 @@ import crypto from 'crypto'
 import bcryptjs from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 
-const UserSchema = new mongoose.Schema({
-    userName: {
+const StudentSchema = new mongoose.Schema({
+    displayName: {
         type: String
     },
-    firstName: {
-        type: String
-    },
-    lastName: {
+    name: {
         type: String
     },
     password: {
@@ -35,6 +32,25 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: 'student'
     },
+    allowNotifications: {
+        type: Boolean,
+        default: false,
+    },
+    intrestedCourses: {
+        type: Array,
+    },
+    preferredLanguage: {
+        type: String,
+        default: 'English'
+    },
+    country: {
+        type: String,
+    },
+    studentID: {
+        type: String,
+        required: [true, 'Student ID is required'],
+        unique: [ true, 'Student With this ID already exist']
+    },
     aboutMe: {
         type: String
     },
@@ -51,7 +67,7 @@ const UserSchema = new mongoose.Schema({
 {timestamps: true}
 )
 
-UserSchema.pre('save', async function(next){
+StudentSchema.pre('save', async function(next){
     if(!this.isModified('password')) {
         return next();
     };
@@ -65,15 +81,15 @@ UserSchema.pre('save', async function(next){
     }
 })
 
-UserSchema.methods.matchStudentPasswords = async function(password){
+StudentSchema.methods.matchStudentPasswords = async function(password){
     return await bcryptjs.compare(password, this.password)
 }
 
-UserSchema.methods.getStudentSignedToken = function(){
+StudentSchema.methods.getStudentSignedToken = function(){
     return jsonwebtoken.sign({ id: this._id, accountType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
 }
 
-UserSchema.methods.getStudentResetPasswordToken = function(){
+StudentSchema.methods.getStudentResetPasswordToken = function(){
     const resetToken = crypto.randomBytes(20).toString('hex');
 
     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
@@ -83,5 +99,5 @@ UserSchema.methods.getStudentResetPasswordToken = function(){
 }
 
 
-const UserModel =  mongoose.model('user', UserSchema);
-export default UserModel
+const StudentModel =  mongoose.model('student', StudentSchema);
+export default StudentModel
