@@ -23,6 +23,7 @@ app.use(express.json())
 const allowedOrigins = [
     process.env.CLIENT_URL,
     process.env.SERVER_URL,
+    '*',
 ];
 
 const corsOptions = {

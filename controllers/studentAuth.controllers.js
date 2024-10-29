@@ -140,6 +140,7 @@ export async function login(req, res) {
 
 //FORGOT PASSWORD
 export async function forgotPassword(req, res) {
+    const { email } = req.body
     try {
         
     } catch (error) {
