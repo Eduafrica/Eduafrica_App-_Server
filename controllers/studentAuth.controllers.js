@@ -138,6 +138,16 @@ export async function login(req, res) {
     }
 }
 
+//FORGOT PASSWORD
+export async function forgotPassword(req, res) {
+    try {
+        
+    } catch (error) {
+        console.log('UNABLE TO PROCESS FORGOT PASSWORD', error)
+        res.status(500).json({ success: false, data: 'Something went wromg'})
+    }
+}
+
 //OAUTH
 export async function googleOAuth(req, res) {
     res.haeder('Access-Controll-Allow-Origin', 'http://localhost:9000')

@@ -8,7 +8,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://apache.org/'
-host: https://eduafric.onrender.com
+host: eduafric.onrender.com
 basePath: /               
 schemes:
   - http
