@@ -5,6 +5,8 @@ const router = express.Router()
 
 router.post('/register', controllers.registerUser )
 router.post('/login', controllers.login )
+router.post('/forgotPassword', controllers.forgotPassword )
+router.post('/resetPassword/:resetToken', controllers.resetPassword )
 
 
 

@@ -3,7 +3,17 @@ import { registerMail } from "../middleware/sendEmail.js";
 import { generateOtp, generateUniqueCode } from "../middleware/utils.js";
 import OtpModel from "../models/Otp.js";
 import StudentModel from "../models/Student.js";
+import sendEmail from "../middleware/mailer.js";
+import Mailgen from "mailgen";
+import crypto from 'crypto'
 
+const mailGenerator = new Mailgen({
+    theme: 'default',
+    product: {
+        name: 'Edu Africa',
+        link: `${process.env.APP_LINK}`
+    }
+})
 
 //REGISTER USER
 export async function registerUser(req, res) {
@@ -141,13 +151,124 @@ export async function login(req, res) {
 //FORGOT PASSWORD
 export async function forgotPassword(req, res) {
     const { email } = req.body
+    if(!email){
+        return res.status(404).json({ success: false, data: 'Provide your registered email address'})
+    }
     try {
-        
+        const user = await StudentModel.findOne({ email });
+
+        if(!user){
+            return res.status(404).json({ success: false, data: 'Email Does Not Exist'})
+        }
+
+        const resetToken = user.getStudentResetPasswordToken()
+
+        await user.save()
+        const resetUrl = `${process.env.APP_LINK}/reset-password/${resetToken}`
+        console.log('RESET TOKEN', resetToken)
+        try {
+            // send mail
+            const emailContent = {
+                body: {
+                    intro: 'You have Requested a password reset.',
+                    action: {
+                        instructions: 'Please click the following button to reset your password. Link Expires in 10 mintues',
+                        button: {
+                            color: '#00BF63',
+                            text: 'Reset Your Password',
+                            link: resetUrl
+                        },
+                    },
+                    outro: `
+                        Reset link: ${resetUrl}
+
+                        If you did not request a password reset, please ignore this email.
+                    `
+                },
+            };
+
+            const emailTemplate = mailGenerator.generate(emailContent)
+            const emailText = mailGenerator.generatePlaintext(emailContent)
+
+            try {
+                await sendEmail({
+                    to: user.email,
+                    subject: 'Password Reset Request',
+                    text: emailTemplate
+                })
+                res.status(200).json({success: true, msg: 'Email sent', data: email })
+                
+            } catch (error) {
+                console.log('FORGOT PASSWORD EMAIL ERROR?>', error)
+            }
+            
+        } catch (error) {
+            user.resetPasswordToken = undefined
+            user.resetPasswordExpire = undefined
+
+            await user.save()
+            console.log('Email could not be sent >>',error)
+            return res.status(500).json({ success: false, data: 'Email could not be sent' })
+        }
     } catch (error) {
-        console.log('UNABLE TO PROCESS FORGOT PASSWORD', error)
-        res.status(500).json({ success: false, data: 'Something went wromg'})
+        console.log('ERROR GENERATING STUDENT PASSWORD RESET LINK', error)
+        res.status(500).json({ success: false, data: 'Something went wrong' })
     }
 }
+
+//USER RESET PASSWORD
+export async function resetPassword (req, res){
+    const { password, confirmPassword } = req.body
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex')
+
+    try {
+        if (!password || !confirmPassword) {
+            return res.status(400).json({ success: false, data: 'Password and confirm password are required' });
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ success: false, data: 'Passwords must be at least 8 characters long' });
+        }
+
+        const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
+        if (!specialChars.test(password)) {
+            return res.status(400).json({ success: false, data: 'Passwords must contain at least one special character' });
+        }
+    
+        if (password !== confirmPassword) {
+            return res.status(400).json({ success: false, data: 'Passwords do not match' });
+        }
+    
+
+        const user = await StudentModel.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now()}
+        })
+
+        if(!user){
+            return  res.status(400).json({ success: false, data: 'Invalid Reset Token'})
+        }
+
+        const isMatch = await user.matchStudentPasswords(password);
+        if(isMatch){
+            return res.status(401).json({ success: false, data: 'Old Password must not match new password' })
+        }
+
+        user.password = password
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined
+
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            data: 'Password Reset successful'
+        })
+    } catch (error) {
+        console.log('ERROR RESETING USER PASSWORD', error)
+        res.status(500).json({ success: false, data: 'Something went wrong. Unable to process reset password request' })
+    }
+}
+
 
 //OAUTH
 export async function googleOAuth(req, res) {

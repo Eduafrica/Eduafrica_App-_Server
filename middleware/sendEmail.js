@@ -30,7 +30,7 @@ export const registerMail = async ({ username, userEmail, subject, instructions,
                 instructions: instructions,
                 ...(otp && {
                     button: {
-                        color: '#014601',
+                        color: '#00BF63',
                         otp: `OTP: ${otp}`,
                     }
                 })
