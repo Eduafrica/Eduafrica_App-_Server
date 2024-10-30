@@ -28,12 +28,10 @@ export const registerMail = async ({ username, userEmail, subject, instructions,
             intro: intro,
             action: {
                 instructions: instructions,
-                ...(otp && {
-                    button: {
-                        color: '#00BF63',
-                        otp: `OTP: ${otp}`,
-                    }
-                })
+                button: {
+                    color: '#00BF63',
+                    text: `OTP: ${otp}`,
+                }
             },
             outro: outro
         }

@@ -70,7 +70,7 @@ export async function registerUser(req, res) {
                 userEmail: user.email,
                 subject: 'EDTRCH AFRIC SIGNUP SUCCESSFUL',
                 intro: 'Verify your Edtech Afric email address',
-                instructions: 'Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
+                instructions: `Account Signed Up Successfully. Enter Otp to verify your Email Address. Your OTP code is: ${otpCode} Note Otp is Valid for One (1) Hour.`,
                 outro: `If you did not Sign Up, please ignore this email and report.
                 `,
                 otp: otpCode,
