@@ -1,10 +1,12 @@
 import jsonwebtoken from 'jsonwebtoken'
-import UserModel from '../models/User';
+import StudentModel from '../models/Student.js';
+import InstructorModel from '../models/Instructors.js';
+import organizationModel from '../models/Organization.js';
 
 //authorize user request
 export const Protect = async (req, res, next) => {
     const token = req.cookies.edtechafric;
-    //console.log('PROTECT TOKEN>>', token)
+    console.log('PROTECT TOKEN>>', token)
   
     if (!token) {
       return res.status(401).json({ success: false, data: 'Not Allowed Please Login' });
@@ -22,8 +24,19 @@ export const Protect = async (req, res, next) => {
   
       req.user = user;
   
-      const { id } = user;
-      const isUser = await UserModel.findById(id);
+      const { id, userType } = user;
+      let isUser
+      
+      if(userType === 'student'){
+        isUser = await StudentModel.findById(id);
+      }
+      if(userType === 'instructor'){
+        isUser = await InstructorModel.findById(id);
+      }
+      if(userType === 'organization'){
+        isUser = await organizationModel.findById(id);
+      }
+
       if (!isUser) {
         return res.status(404).json({ success: false, data: 'Invalid user' });
       }

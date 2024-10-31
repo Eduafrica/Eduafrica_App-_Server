@@ -12,6 +12,16 @@ const CourseSchema = new mongoose.Schema({
     overview: {
         type: String
     },
+    syllabus: [
+        {
+            period: {
+                type: String,
+            },
+            mileStone: {
+                type: String
+            }
+        }
+    ],
     instructorName: {
         type: String,
         required: [true, 'Instructors Name is Required']
@@ -31,6 +41,10 @@ const CourseSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: [true, 'Course Price is required']
+    },
+    priceCurrency: {
+        type: String,
+        default: 'NGN'
     },
     isDiscountAllowed: {
         type: Boolean,
@@ -61,8 +75,7 @@ const CourseSchema = new mongoose.Schema({
         comment:{
             type: String
         }
-    }
-    ],
+    }],
     studentLevel: {
         type: String,
         enum: [ 'Beginner', 'Intermediate', 'Advanced']
@@ -73,7 +86,23 @@ const CourseSchema = new mongoose.Schema({
     language: {
         type: String
     },
-
+    faq: [
+        {
+            question: {
+                type: String,
+            },
+            answer: {
+                type: String
+            }
+        }
+    ],
+    keyWords: {
+        type: Array
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    }
 },
 {timestamps: true}
 )

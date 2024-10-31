@@ -15,7 +15,7 @@ const mailGenerator = new Mailgen({
     }
 })
 
-//REGISTER USER
+//REGISTER STUDENT
 export async function registerUser(req, res) {
     const { displayName, name, password, confirmPassword, email, allowNotifications, intrestedCourses, preferredLanguage, country } = req.body
     if (!email) {
@@ -89,7 +89,7 @@ export async function registerUser(req, res) {
     }
 }
 
-//LOGIN USER
+//LOGIN STUDENT
 export async function login(req, res) {
     const { email, password } = req.body 
     if(!email || !password){
@@ -216,7 +216,7 @@ export async function forgotPassword(req, res) {
     }
 }
 
-//USER RESET PASSWORD
+//STUDENT RESET PASSWORD
 export async function resetPassword (req, res){
     const { password, confirmPassword } = req.body
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex')
@@ -300,4 +300,20 @@ export async function getUserDataFromGoogle(req, res) {
     const data = await response.json();
 
     console.log('DATA',data)
+}
+
+//GET STUDENTS ALL COURSE
+export async function getStudentAllCourse(req, res) {
+    const { _id, name } = req.body
+    try {
+        const studentCourses = await CourseModel.find({
+            students: { $in: [_id] },
+            isBlocked: false // to get only unblocked courses
+        });
+
+        res.status(200).json({ success: true, data: studentCourses });
+    } catch (error) {
+        console.log('UNABLE TO GET ALL COURSE OFFERED BY STUDENT', error)
+        res.status(500).json({ success: false, data: `Unabke to get courses offered by ${name}` })
+    }
 }

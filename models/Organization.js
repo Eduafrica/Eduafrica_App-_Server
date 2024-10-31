@@ -54,7 +54,7 @@ organizationSchema.methods.matchStudentPasswords = async function(password){
 }
 
 organizationSchema.methods.getStudentSignedToken = function(){
-    return jsonwebtoken.sign({ id: this._id, accountType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
+    return jsonwebtoken.sign({ id: this._id, verified: this.verified, userType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
 }
 
 organizationSchema.methods.getStudentResetPasswordToken = function(){
