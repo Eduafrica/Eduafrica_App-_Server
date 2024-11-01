@@ -1,4 +1,4 @@
-import { generateUniqueCode } from "../middleware/utils.js"
+import { calculateAverageCourseRating, generateUniqueCode } from "../middleware/utils.js"
 import CourseModel from "../models/Course.js"
 import CourseCategoryModel from "../models/CourseCategories.js"
 import ReportCourseModel from "../models/ReportCourse.js"
@@ -64,6 +64,9 @@ export async function rateACourse(req, res) {
         if(rateNumber < 0){
             return res.status(400).json({ success: false, data: 'Rating number(value) must be at least one'})
         }
+        if(rateNumber > 5){
+            return res.status(400).json({ success: false, data: 'Rating number max value is 5'})
+        }
 
         const findCourse = await CourseModel.findById({ _id: _id })
         if(!findCourse){
@@ -91,9 +94,12 @@ export async function rateACourse(req, res) {
 export async function getAllCourse(req, res) {
     
     try {
-        const allCourses = await CourseModel.find({ isBlocked: false })
+        //const allCourses = await CourseModel.find({ isBlocked: false }).sort({ createdAt: -1 })
+        const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
-        res.status(200).json({ success: true, data: allCourses })
+        const coursesWithRatings = await calculateAverageCourseRating(allCourses);
+        
+        res.status(200).json({ success: true, data: coursesWithRatings })
     } catch (error) {
         console.log('UNABLE TO GET ALL COURSE', error)
         res.status(500).json({ success: false, data: 'Unable to get all course'})
@@ -128,8 +134,9 @@ export async function getCourseByCategory(req, res) {
         }
 
         const courses = await CourseModel.find({ category: { $in: [catSlug?.category] } });
+        const coursesWithRatings = await calculateAverageCourseRating(courses);
 
-        res.status(200).json({ success: true, data: courses })
+        res.status(200).json({ success: true, data: coursesWithRatings })
     } catch (error) {
         console.log('UNABLE TO GET COURSE BY PARAMS', error)
         res.status(500).json({ success: false, data: 'Unable to get courses with this category' })
@@ -205,10 +212,32 @@ export async function getCourse(req, res) {
             return res.status(404).json({ success: false, data: 'Course not found' })
         }
 
-        res.status(200).json({ success: true, data: getCourse })
+        const coursesWithRatings = await calculateAverageCourseRating(getCourse);
+
+        res.status(200).json({ success: true, data: coursesWithRatings })
     } catch (error) {
         console.log('UNABLE TO GET A COURSE')
         res.status(500).json({ success: false, data: 'Unable to get course' })
+    }
+}
+
+//GET POPULAR COURSE
+export async function getPopularCourse(req, res) {
+    try {
+        // Fetch courses sorted by the number of students in descending order, limit to 100
+        const topCourses = await CourseModel.find()
+            .sort({ 'students.length': -1 }) 
+            .limit(100);
+
+        const shuffledCourses = topCourses.sort(() => 0.5 - Math.random());
+        const selectedCourses = shuffledCourses.slice(0, 5);
+
+        const coursesWithRatings = await calculateAverageCourseRating(selectedCourses);
+
+        res.status(200).json({ success: true, data: coursesWithRatings });
+    } catch (error) {
+        console.log('UNABLE TO GET POPULAR COURSES', error);
+        res.status(500).json({ success: false, data: 'Failed to get popular course' });
     }
 }
 
@@ -239,6 +268,15 @@ export async function reportCourse(req, res) {
         console.log('UNABLE TO REPORT COURSE BY STUDENT', error)
         res.status(500).json({ success: true, data: 'Unable to report course' })
    } 
+}
+
+//BUY A COURSE
+export async function buyCourse(req, res) {
+    try {
+        
+    } catch (error) {
+        
+    }
 }
 
 //FLAG A COURSE

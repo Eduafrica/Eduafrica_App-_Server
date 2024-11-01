@@ -164,7 +164,8 @@ export async function forgotPassword(req, res) {
         const resetToken = user.getStudentResetPasswordToken()
 
         await user.save()
-        const resetUrl = `${process.env.APP_LINK}/reset-password/${resetToken}`
+        //const resetUrl = `${process.env.APP_LINK}/reset-password/${resetToken}`
+        const resetUrl = `<a href=“eduafrica-mobile://reset-password/${resetToken}”></a>`
         console.log('RESET TOKEN', resetToken)
         try {
             // send mail

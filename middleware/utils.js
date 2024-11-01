@@ -48,3 +48,43 @@ export async function generateUniqueCode(length) {
 
     return slugCode;
 }
+
+// Function to calculate average ratings of course
+export function calculateAverageCourseRating(courses) {
+    // Check if courses is an array
+    if (Array.isArray(courses)) {
+        // Return an array with average ratings for each course
+        return courses.map(course => {
+            if (course.ratings && course.ratings.length > 0) {
+                const totalRating = course.ratings.reduce((sum, rating) => sum + (rating.rateNumber || 0), 0);
+                const averageRating = totalRating / course.ratings.length;
+                return {
+                    ...course._doc,
+                    averageRating: Math.round((averageRating + Number.EPSILON) * 10) / 10 // Rounded to 1 decimal place
+                };
+            } else {
+                return {
+                    ...course._doc,
+                    averageRating: 0 // No ratings yet
+                };
+            }
+        });
+    } else if (typeof courses === 'object' && courses !== null) {
+        // Handle a single course object
+        if (courses.ratings && courses.ratings.length > 0) {
+            const totalRating = courses.ratings.reduce((sum, rating) => sum + (rating.rateNumber || 0), 0);
+            const averageRating = totalRating / courses.ratings.length;
+            return {
+                ...courses._doc,
+                averageRating: Math.round((averageRating + Number.EPSILON) * 10) / 10 // Rounded to 1 decimal place
+            };
+        } else {
+            return {
+                ...courses._doc,
+                averageRating: 0 // No ratings yet
+            };
+        }
+    } else {
+        throw new Error('Invalid input: Expected an array or an object');
+    }
+}

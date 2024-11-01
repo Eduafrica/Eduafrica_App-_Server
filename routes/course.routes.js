@@ -18,11 +18,12 @@ router.post('/reportCourse', controllers.reportCourse )
 
 
 //GET ROUTES
-router.get('/getAllCourse',Protect,  controllers.getAllCourse)
-router.get('/getCourse', Protect, controllers.getCourse)
-router.get('/getAllCourseCategories', Protect, controllers.getAllCourseCategories)
-router.get('/getCourseByCategory/:category', Protect, controllers.getCourseByCategory)
-router.get('/getCourseByParams/:param', Protect, controllers.getCourseByParams)
+router.get('/getAllCourse',  controllers.getAllCourse)
+router.get('/getCourse', controllers.getCourse)
+router.get('/getPopularCourse', controllers.getPopularCourse)
+router.get('/getAllCourseCategories', controllers.getAllCourseCategories)
+router.get('/getCourseByCategory/:category', controllers.getCourseByCategory)
+router.get('/getCourseByParams/:param', controllers.getCourseByParams)
 
 
 
