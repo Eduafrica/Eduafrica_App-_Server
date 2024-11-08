@@ -222,7 +222,7 @@ export async function forgotPassword(req, res) {
     }
 }
 
-//STUDENT RESET PASSWORD
+//STUDINSTRUCTORENT RESET PASSWORD
 export async function resetPassword (req, res){
     const { password, confirmPassword } = req.body
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex')
@@ -275,18 +275,17 @@ export async function resetPassword (req, res){
     }
 }
 
-//STUDENT UPDATE PROFILE
+//INSTRUCTOR UPDATE PROFILE
 export async function updateProfile(req, res){
-    const { name, displayName, country, intrestedCourses, preferredLanguage, allowNotifications } = req.body
+    const { name, displayName, country, preferredLanguage, allowNotifications } = req.body
     try {
-        const updateUser = await StudentModel.findByIdAndUpdate(
+        const updateUser = await InstructorModel.findByIdAndUpdate(
             _id,
             {
                 $set: {
                     name,
                     displayName,
                     country,
-                    intrestedCourses,
                     preferredLanguage,
                     allowNotifications,
                 }
@@ -296,7 +295,7 @@ export async function updateProfile(req, res){
 
         res.status(200).json({ success: true, data: 'Profile Updated Successful' })
     } catch (error) {
-        console.log('UNABLE TO UPDATE STUDENT PROFILE', error)
-        res.status(500).json({ success: false, data: 'Unable to update student profile' })
+        console.log('UNABLE TO UPDATE INSTRUCTOR PROFILE', error)
+        res.status(500).json({ success: false, data: 'Unable to update instructor profile' })
     }
 }

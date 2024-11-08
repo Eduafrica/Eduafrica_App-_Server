@@ -276,7 +276,7 @@ export async function updateProfile(req, res){
     const { name, displayName, country, intrestedCourses, preferredLanguage, allowNotifications } = req.body
     try {
         const updateUser = await StudentModel.findByIdAndUpdate(
-            _id,
+            req.user._id,
             {
                 $set: {
                     name,
