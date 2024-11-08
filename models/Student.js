@@ -56,6 +56,10 @@ const StudentSchema = new mongoose.Schema({
     course: {
         type: Array
     },
+    learningReminder: [{
+        day: { type: String, required: true },
+        time: { type: String, required: true }, 
+    }],
     verified: {
         type: Boolean,
         default: false

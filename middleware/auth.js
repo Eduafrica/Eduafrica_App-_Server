@@ -6,7 +6,7 @@ import organizationModel from '../models/Organization.js';
 //authorize user request
 export const Protect = async (req, res, next) => {
     const token = req.cookies.edtechafric;
-    console.log('PROTECT TOKEN>>', token)
+    //console.log('PROTECT TOKEN>>', token)
   
     if (!token) {
       return res.status(401).json({ success: false, data: 'Not Allowed Please Login' });
@@ -59,3 +59,67 @@ export const Protect = async (req, res, next) => {
       }
     }
   };
+
+// Middleware to check and create a chatId
+export const ChatId = async (req, res, next) => {
+  const token = req.cookies.edtechafric;
+  const chatToken = req.cookies.edtechChatID;
+  let isUser = null;
+  console.log('object chates', chatToken)
+
+  try {
+    if (token) {
+      const user = await new Promise((resolve, reject) => {
+        jsonwebtoken.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(decoded);
+        });
+      });
+
+      req.user = user;
+      const { id, userType } = user;
+
+      // Retrieve the user based on userType
+      if (userType === 'student') {
+        isUser = await StudentModel.findById(id);
+      } else if (userType === 'instructor') {
+        isUser = await InstructorModel.findById(id);
+      } else if (userType === 'organization') {
+        isUser = await organizationModel.findById(id);
+      }
+    }
+
+    // Set chatId based on whether user is found
+    if (isUser) {
+      req.user = isUser;
+      req.chatId = {
+        user: true,
+        name: isUser.name,
+        role: isUser.userType,
+        chatId: isUser._id,
+        userId: isUser._id,
+      };
+    } else {
+      req.chatId = { user: false, chatId: Date.now() }; // Temporary ID for unauthenticated users
+    }
+
+    // Send chatToken to the client
+    const chatTokenPayload = req.chatId;
+    const signedChatToken = jsonwebtoken.sign(chatTokenPayload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
+    const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000);
+    
+    res.cookie('edtechChatID', signedChatToken, {
+      httpOnly: true,
+      expires: expiryDate,
+      sameSite: 'None',
+      secure: true,
+    });
+
+    next();
+  } catch (error) {
+    console.log('UNABLE TO PASS AI CHAT TOKEN', error);
+    res.status(500).json({ success: false, data: `Unable to connect with ${process.env.AI_NAME}` });
+  }
+};

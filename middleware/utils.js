@@ -88,3 +88,12 @@ export function calculateAverageCourseRating(courses) {
         throw new Error('Invalid input: Expected an array or an object');
     }
 }
+
+//Check for empty filleds
+export function checkRequiredFields(fields, reqBody, res) {
+    for (const field of fields) {
+      if (!reqBody[field]) {
+        return res.status(500).json({ success: false, message: `The field "${field}" is required and cannot be empty.` });
+      }
+    }
+}

@@ -145,6 +145,97 @@ paths:
         500: 
           description: Server error
 
+  /api/student/newPaymentCard:
+    post:
+      summary: Student add a new payment card
+      description: Student add a new payment card
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - cardType
+              - cardName
+              - cardNumber
+              - expiryDate
+              - cvv
+            properties:
+              cardType:
+                type: string
+              cardName:
+                type: string
+              cardNumber:
+                type: string
+              expiryDate:
+                type: string
+              cvv:
+                type: string
+              defaultCard:
+                type: boolean (optional)
+      responses:
+        200: 
+          description: New Payment card added
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/student/updatePaymentCard:
+    post:
+      summary: Student update a payment card
+      description: Student update a payment card
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              cardType:
+                type: string
+              cardName:
+                type: string
+              cardNumber:
+                type: string
+              expiryDate:
+                type: string
+              cvv:
+                type: string
+              defaultCard:
+                type: boolean (optional)
+      responses:
+        200: 
+          description: Card Details Updated Succssful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/student/deletePaymentCard:
+    post:
+      summary: Student delete a payment card
+      description: Student delete a payment card
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+            properties:
+              _id:
+                type: string
+      responses:
+        200: 
+          description: Card deleted successfully
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/instructor/register:
     post:
       summary: Register new instructor
@@ -156,21 +247,26 @@ paths:
           schema:
             type: object
             required:
-              - email
+              - name
+              - displayName
               - password
-              - firstName
-              - lastName
               - confirmPassword
+              - email
+              - preferredLanguage,
             properties:
-              email:
+              name:
                 type: string
-              firstName:
-                type: string
-              lastName:
+              displayName:
                 type: string
               password:
                 type: string
               confirmPassword:
+                type: string
+              email:
+                type: string
+              preferredLanguage:
+                type: string
+              country:
                 type: string
       responses:
         201: 
@@ -203,6 +299,56 @@ paths:
           description: Signup successful but account not verified
         201: 
           description: Signup successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/instructor/forgotPassword:
+    post:
+      summary: Instructor forgot password request
+      description: Instructor forgot password request
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+      responses:
+        200: 
+          description: Email sent
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/instructor/resetPassword/:resetToken:
+    post:
+      summary: Instructor reset password request
+      description: Instructor reset password request
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - password
+              - confirmPassword
+              - resetToken (params)
+            properties:
+              password:
+                type: string
+              confirmPassword:
+                type: string
+      responses:
+        200: 
+          description: Password Reset successful
         400:
           description: User error
         500: 
@@ -584,6 +730,55 @@ paths:
       responses:
         200: 
           description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/student/setLearningReminder:
+    post:
+      summary: Student set a learning
+      description: Student set a learning reminder for learing
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - day
+              - time
+            properties:
+              day:
+                type: string
+              time:
+                type: string
+      responses:
+        201: 
+          description: Learning reminder added successfully 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/student/deleteLearningReminder:
+    post:
+      summary: Student delete a learning
+      description: Student delete a learning reminder for learing
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+            properties:
+              _id:
+                type: string
+      responses:
+        201: 
+          description: Reminder deleted successfully
         400:
           description: User error
         500: 

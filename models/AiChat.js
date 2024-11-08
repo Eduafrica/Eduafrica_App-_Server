@@ -8,6 +8,11 @@ const AiChatSchema = new mongoose.Schema({
     history: {
         type: Array
     },
+    expiresAt: { 
+        type: Date,
+        default: undefined,
+        expires: 0 
+    }
 },
 { timestamps: true }
 )

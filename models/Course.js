@@ -26,6 +26,10 @@ const CourseSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Instructors Name is Required']
     },
+    instructorEmail: {
+        type: String,
+        required: [true, 'Instructors Email is Required']
+    },
     instructorId: {
         type: String,
         required: [true, 'Instructors ID is required']

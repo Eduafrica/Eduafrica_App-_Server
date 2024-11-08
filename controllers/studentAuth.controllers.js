@@ -1,12 +1,13 @@
 import {  OAuth2Client } from "google-auth-library"
 import { registerMail } from "../middleware/sendEmail.js";
-import { generateOtp, generateUniqueCode } from "../middleware/utils.js";
+import { checkRequiredFields, generateOtp, generateUniqueCode } from "../middleware/utils.js";
 import OtpModel from "../models/Otp.js";
 import StudentModel from "../models/Student.js";
 import sendEmail from "../middleware/mailer.js";
 import Mailgen from "mailgen";
 import crypto from 'crypto'
-
+import CardDeatilsModel from "../models/CardDetails.js";
+import moment from 'moment';
 const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -139,7 +140,7 @@ export async function login(req, res) {
         //SEND TOKEN
         const token = user.getStudentSignedToken();
         const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
-        const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = user._doc
+        const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, _id, ...userData } = user._doc
         res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
         
     } catch (error) {
@@ -269,6 +270,242 @@ export async function resetPassword (req, res){
         res.status(500).json({ success: false, data: 'Something went wrong. Unable to process reset password request' })
     }
 }
+
+//STUDENT UPDATE PROFILE
+export async function updateProfile(req, res){
+    const { name, displayName, country, intrestedCourses, preferredLanguage, allowNotifications } = req.body
+    try {
+        const updateUser = await StudentModel.findByIdAndUpdate(
+            _id,
+            {
+                $set: {
+                    name,
+                    displayName,
+                    country,
+                    intrestedCourses,
+                    preferredLanguage,
+                    allowNotifications,
+                }
+            },
+            { new: true }
+        )
+
+        res.status(200).json({ success: true, data: 'Profile Updated Successful' })
+    } catch (error) {
+        console.log('UNABLE TO UPDATE STUDENT PROFILE', error)
+        res.status(500).json({ success: false, data: 'Unable to update student profile' })
+    }
+}
+
+//CREATE NEW CARD DETAILS
+export async function newPaymentCard(req, res) {
+    const { _id } = req.user
+    const { cardType, cardNumber, cardName, expiryDate, cvv, defaultCard } = req.body
+    try {
+        const requiredFields = ['cardType', 'cardNumber', 'cardName', 'expiryDate', 'cvv',];
+        checkRequiredFields(requiredFields, req.body, res);
+        if (validationResponse) {
+            return;
+        }
+        if(cvv.length !== 3){
+            return res.status(400).json({ success: false, data: 'Invalid CVV code' })
+        }
+
+        const cardObject = {
+            cardType,
+            cardNumber,
+            cardName,
+            expiryDate,
+            cvv,
+            defaultCard: defaultCard === true ? true : false
+        }
+
+        console.log('object')
+        const newCard =  await CardDeatilsModel.create({
+            userId: _id
+        })
+        newCard.card.push(cardObject)
+        await newCard.save()
+
+        res.status(201).json({ success: true, data: 'New Payment card added' })
+
+    } catch (error) {
+        console.log('UNABLE TO CREATE CARD DETAILS', error)
+        res.status(500).json({ success: false, data: 'Unable to create card details' })
+    }   
+}
+
+//UPDATE CARD DETAILS
+export async function updatePaymentCard(req, res) {
+    const { userId: _id } = req.user
+    const { cardType, cardNumber, cardName, expiryDate, cvv, defaultCard } = req.body
+
+    try {
+        const cardDetails = await CardDeatilsModel.findOne({ userId });
+
+        if (!cardDetails) {
+          return res.status(404).json({ success: false, data: 'Card details not found' });
+        }
+
+        const card = cardDetails.card._id(req.body._id);
+
+        if (!card) {
+          return res.status(404).json({ success: false, data: 'Card not found' });
+        }
+
+        if (defaultCard === true) {
+            // If the updated card is set to defaultCard, we need to unset it for other cards
+            cardDetails.card.forEach(existingCard => {
+                if (existingCard._id.toString() !== req.body._id.toString()) {
+                    existingCard.defaultCard = false;  // Set other cards' defaultCard to false
+                }
+            });
+        }
+
+        // Step 3: 
+        card.cardType = cardType || card.cardType;
+        card.cardName = cardName || card.cardName;
+        card.cardNumber = cardNumber || card.cardNumber;
+        card.expiryDate = expiryDate || card.expiryDate;
+        card.cvv = cvv || card.cvv;
+        card.defaultCard = defaultCard === true ? true : card.defaultCard;
+
+        await cardDetails.save();
+
+        return res.status(200).json({
+            success: true,
+            data: 'Card Details Updated Succssful'
+        });
+    
+    } catch (error) {
+        console.log('UNABLE TO UPDATE CARD DETAILS', error)
+        res.status(500).json({ success: false, data: 'Unable to create card details' })
+    }
+}
+
+//DELETE CARD DETAILS
+export async function deletePaymentCard(req, res) {
+    const { userId: _id } = req.user
+
+    try {
+        const cardDetails = await CardDeatilsModel.findOne({ userId });
+
+        if (!cardDetails) {
+          return res.status(404).json({ success: false, data: 'Card details not found' });
+        }
+
+        const card = cardDetails.card._id(req.body._id);
+
+        if (!card) {
+          return res.status(404).json({ success: false, data: 'Card not found' });
+        }
+
+        cardDetails.card.pull({ _id: req.body._id });  
+        await cardDetails.save();
+
+        return res.status(200).json({
+            success: true,
+            data: 'Card deleted successfully'
+        });
+    } catch (error) {
+        console.log('UNABLE TO CREATE CARD DETAILS', error)
+        res.status(500).json({ success: false, data: 'Unable to create card details' })
+    }
+}
+
+// SET LEARNING REMINDER
+export async function setLearningReminder(req, res) {
+    const { _id } = req.user;
+    const { day, time } = req.body;
+
+    try {
+        // Validate time format
+        const timeRegex = /^([0-9]|1[0-2]):([0-5][0-9]) (AM|PM)$/;
+        if (!timeRegex.test(time)) {
+            return res.status(400).json({ success: false, data: 'Invalid time format. Use E.G "09:15 AM" or "12:00 PM" format' });
+        }
+
+        // Validate day of the week
+        const validDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        if (!validDays.includes(day)) {
+            return res.status(400).json({ success: false, data: 'Invalid day format. Use full day names, e.g., "Monday", "Tuesday".' });
+        }
+
+        // Find user and add the learning reminder
+        const user = await StudentModel.findOne({ _id });
+        user.learningReminder.push({ day, time });
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            data: 'Learning reminder added successfully',
+        });
+    } catch (error) {
+        console.log('Error adding learning reminder:', error);
+        return res.status(500).json({ success: false, data: 'Unable to set your reminder' });
+    }
+}
+
+// DELETE LEARNING REMINDER
+export async function deleteLearningReminder(req, res) {
+    const { userId: _id } = req.user
+    try {
+        const reminder = await StudentModel.findById(userId)
+
+        const card = reminder.learningReminder._id(req.body._id);
+
+        if (!card) {
+          return res.status(404).json({ success: false, data: 'Reminder not found' });
+        }
+
+        reminder.learningReminder.pull({ _id: req.body._id })
+        await reminder.save()
+
+        return res.status(200).json({
+            success: true,
+            data: 'Reminder deleted successfully'
+        });
+    } catch (error) {
+        console.log('UNABLE TO DLETE LERARING REMINDER', error)
+        res.status(500).json({ success: false, data: 'Internal server error' })
+    }
+}
+
+//CHECK FOR REMINDER DUE DATE AND TIME
+export async function checkLearningReminders() {
+    try {
+        // Get all users and their learningReminder arrays
+        const users = await StudentModel.find({});
+
+        // Get the current day and time in the required format
+        const currentDay = moment().format('dddd'); // e.g., 'Monday'
+        const currentTime = moment().format('h:mm A'); // e.g., '9:00 AM'
+
+        users.forEach(user => {
+            // Loop through each user's learningReminder array
+            user.learningReminder.forEach(reminder => {
+                const { day, time } = reminder;
+                
+                // Compare both the current day and time with the reminder's day and time
+                if (currentDay === day && currentTime === time) {
+                    console.log(`Reminder for user ${user.userId} on ${day} at ${time}`);
+                }
+            });
+        });
+    } catch (error) {
+        console.log('Error checking learning reminders:', error);
+    }
+}
+
+// Run the check every minute (60 seconds)
+setInterval(checkLearningReminders, 60000);
+
+
+
+
+
+
 
 
 //OAUTH

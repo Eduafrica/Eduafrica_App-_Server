@@ -4,13 +4,10 @@ import bcryptjs from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 
 const InstructorSchema = new mongoose.Schema({
-    userName: {
+    displayName: {
         type: String
     },
-    firstName: {
-        type: String
-    },
-    lastName: {
+    name: {
         type: String
     },
     password: {
@@ -37,6 +34,22 @@ const InstructorSchema = new mongoose.Schema({
     },
     aboutMe: {
         type: String
+    },
+    preferredLanguage: {
+        type: String,
+        default: 'English'
+    },
+    country: {
+        type: String,
+    },
+    instructorID: {
+        type: String,
+        required: [true, 'Instructor ID is required'],
+        unique: [ true, 'Instructor With this ID already exist']
+    },
+    allowNotifications: {
+        type: Boolean,
+        default: false,
     },
     verified: {
         type: Boolean,
@@ -65,15 +78,15 @@ InstructorSchema.pre('save', async function(next){
     }
 })
 
-InstructorSchema.methods.matchStudentPasswords = async function(password){
+InstructorSchema.methods.matchInstructorPasswords = async function(password){
     return await bcryptjs.compare(password, this.password)
 }
 
-InstructorSchema.methods.getStudentSignedToken = function(){
-    return jsonwebtoken.sign({ id: this._id, verified: this.verified, userType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
+InstructorSchema.methods.getInstructorSignedToken = function(){
+    return jsonwebtoken.sign({ id: this._id, verified: this.verified, userType: this.accountType }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
 }
 
-InstructorSchema.methods.getStudentResetPasswordToken = function(){
+InstructorSchema.methods.getInstructorResetPasswordToken = function(){
     const resetToken = crypto.randomBytes(20).toString('hex');
 
     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')

@@ -6,7 +6,7 @@ import ReportCourseModel from "../models/ReportCourse.js"
 //CREATE NEW COURSE INFO
 export async function newCourse(req, res) {
     const { _id, email, name } = req.user
-    const { title, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language } = req.body
+    const { title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language } = req.body
     try {
         if(!title || !about || !overview || !price || !coverImage || !studentLevel || !language){
             return res.status(400).json({ success: false, data: 'Fill all required fields'})
@@ -22,7 +22,7 @@ export async function newCourse(req, res) {
         console.log('COURSE SLUG>>', `AFRIC${generatedCourseSlug}`, generatedCourseSlug)
 
         const makeNewCourse = await CourseModel.create({
-            title, about, desc, instructorName: `${name}`, instructorId: _id, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, slugCode: `AFRIC${generatedCourseSlug}`
+            title, about, desc, instructorName: `${instructorName ? instructorName : name}`, instructorEmail: email, instructorId: _id, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, slugCode: `AFRIC${generatedCourseSlug}`
         })
 
         res.status(201).json({ success: true, data: 'Cousre created successfull', courseId: makeNewCourse._id })
