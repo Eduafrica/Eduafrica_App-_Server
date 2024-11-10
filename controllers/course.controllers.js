@@ -208,7 +208,8 @@ export async function updateCategory(req, res) {
 
 //GET COURSE BY ID
 export async function getCourse(req, res) {
-    const { _id } = req.body
+    const { _id } = req.params
+    console.log('RESD', req.body, _id)
     try {
         if(!_id){
             return res.status(404).json({ success: false, data: 'No Course ID' })
@@ -223,7 +224,7 @@ export async function getCourse(req, res) {
 
         res.status(200).json({ success: true, data: coursesWithRatings })
     } catch (error) {
-        console.log('UNABLE TO GET A COURSE')
+        console.log('UNABLE TO GET A COURSE', error)
         res.status(500).json({ success: false, data: 'Unable to get course' })
     }
 }

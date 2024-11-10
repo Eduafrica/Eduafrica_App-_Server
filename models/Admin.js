@@ -37,6 +37,11 @@ const AdminSchema = new mongoose.Schema({
     profileImg: {
         type: String,
     },
+    staffID: {
+        type: String,
+        unique: [ true, 'Staff ID already exist' ],
+        required: [ true, 'Staff ID is required']
+    },
     blocked: {
         type: Boolean,
         default: false

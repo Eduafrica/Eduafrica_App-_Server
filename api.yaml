@@ -11,7 +11,6 @@ info:
 host: eduafric.onrender.com
 basePath: /               
 schemes:
-  - http
   - https
 
 paths:
@@ -684,21 +683,10 @@ paths:
         500: 
           description: Server error
 
-  /api/course/getCourse:
+  /api/course/getCourse/:_id:
     get:
       summary: Fetch single course by Id from database
       description: Fetch single course by Id from database
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            required:
-              - _id
-            properties:
-              _id(required):
-                type: string
       responses:
         200: 
           description: successful 

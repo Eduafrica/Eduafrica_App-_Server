@@ -542,7 +542,7 @@ export async function getUserDataFromGoogle(req, res) {
 
 //GET STUDENTS ALL COURSE
 export async function getStudentAllCourse(req, res) {
-    const { _id, name } = req.body
+    const { _id, name } = req.user
     try {
         const studentCourses = await CourseModel.find({
             students: { $in: [_id] },
@@ -552,6 +552,6 @@ export async function getStudentAllCourse(req, res) {
         res.status(200).json({ success: true, data: studentCourses });
     } catch (error) {
         console.log('UNABLE TO GET ALL COURSE OFFERED BY STUDENT', error)
-        res.status(500).json({ success: false, data: `Unabke to get courses offered by ${name}` })
+        res.status(500).json({ success: false, data: `Unable to get courses offered by ${name}` })
     }
 }

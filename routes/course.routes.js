@@ -20,7 +20,7 @@ router.post('/reportCourse', controllers.reportCourse )
 
 //GET ROUTES
 router.get('/getAllCourse',  controllers.getAllCourse)
-router.get('/getCourse', controllers.getCourse)
+router.get('/getCourse/:_id', controllers.getCourse)
 router.get('/getPopularCourse', controllers.getPopularCourse)
 router.get('/getAllCourseCategories', controllers.getAllCourseCategories)
 router.get('/getCourseByCategory/:category', controllers.getCourseByCategory)

@@ -33,8 +33,13 @@ export async function createAdmin(req, res) {
         if(userExist){
             return res.status(409).json({ success: false, data: 'Email already exist' })
         }
+
+        const generatedAdminCode = await generateUniqueCode(6)
+        console.log('STUDENT CODE>>', `EA${generatedAdminCode}`)
+
+
         const newAdmin = await AdminModel.create({
-            firstName, lastName, email, password, phoneNumber, country, role
+            firstName, lastName, email, password, phoneNumber, country, role, staffID: `EA${generatedAdminCode}`
         })
 
         const newNotification = await NotificationModel.create({
@@ -70,12 +75,16 @@ export async function createAdmin(req, res) {
 
 //ADMIN LOGIN
 export async function login(req, res) {
-    const { email, password } = req.body
-    if(!email || !password){
-        return res.status(404).json({ success: false, data: 'Provide an email and password' })
+    const { name, password } = req.body
+    if(!name || !password){
+        return res.status(404).json({ success: false, data: 'Provide an email or StaffId and password' })
     }
     try {
-        const user = await AdminModel.findOne({ email })
+        const isEmail = name.includes('@');
+
+            const user = isEmail 
+        ? await AdminModel.findOne({ email: name }) 
+        : await AdminModel.findOne({ staffID: name });
 
         if(!user){
             return res.status(401).json({ success: false, data: 'Invalid User'})
