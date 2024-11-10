@@ -1,6 +1,7 @@
 import { calculateAverageCourseRating, generateUniqueCode } from "../middleware/utils.js"
 import CourseModel from "../models/Course.js"
 import CourseCategoryModel from "../models/CourseCategories.js"
+import NotificationModel from "../models/Notifications.js"
 import ReportCourseModel from "../models/ReportCourse.js"
 
 //CREATE NEW COURSE INFO
@@ -23,6 +24,12 @@ export async function newCourse(req, res) {
 
         const makeNewCourse = await CourseModel.create({
             title, about, desc, instructorName: `${instructorName ? instructorName : name}`, instructorEmail: email, instructorId: _id, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, slugCode: `AFRIC${generatedCourseSlug}`
+        })
+
+        const newNotification = await NotificationModel.create({
+            message: `${name} created a new course and is waiting for approval by Admin`,
+            actionBy: `name - (Instructor)`,
+            name: `${name}`
         })
 
         res.status(201).json({ success: true, data: 'Cousre created successfull', courseId: makeNewCourse._id })
@@ -294,6 +301,41 @@ export async function flagCourse(req, res) {
 
         getCourse.isBlocked = true
         await getCourse.save()
+
+        const newNotification = await NotificationModel.create({
+            message: `${getCourse.instructorName} course has been blocked by Admin`,
+            actionBy: req.admin._id,
+            name: `${req.admin.firstName} ${req.admin.lastName}`
+        })
+
+        res.status(201).json({ success: true, data: `course by ${getCourse.instructorName} has been blocked` })
+    } catch (error) {
+        console.log('UNABLE TO GET A COURSE')
+        res.status(500).json({ success: false, data: 'Unable to get course' })
+    }
+}
+
+//UNFLAG A COURSE
+export async function unFlagCourse(req, res) {
+    const { _id } = req.body
+    try {
+        if(!_id){
+            return res.status(404).json({ success: false, data: 'No Course ID' })
+        }
+
+        const getCourse = await CourseModel.findById({ _id: _id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
+        }
+
+        getCourse.isBlocked = false
+        await getCourse.save()
+
+        const newNotification = await NotificationModel.create({
+            message: `${getCourse.instructorName} course has been unblocked by Admin`,
+            actionBy: req.admin._id,
+            name: `${req.admin.firstName} ${req.admin.lastName}`
+        })
 
         res.status(201).json({ success: true, data: `course by ${getCourse.instructorName} has been blocked` })
     } catch (error) {

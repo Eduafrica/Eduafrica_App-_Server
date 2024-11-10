@@ -21,7 +21,7 @@ let MailGenerator = new Mailgen({
     }
 })
 
-export const registerMail = async ({ username, userEmail, subject, instructions, outro, otp, intro }) => {
+export const registerMail = async ({ username, userEmail, subject, instructions, outro, otp, intro, textName }) => {
     const email = {
         body: {
             name: username || 'New User',
@@ -30,7 +30,7 @@ export const registerMail = async ({ username, userEmail, subject, instructions,
                 instructions: instructions,
                 button: {
                     color: '#00BF63',
-                    text: `OTP: ${otp}`,
+                    text: `${textName ? textName : 'OTP'}: ${otp}`,
                 }
             },
             outro: outro

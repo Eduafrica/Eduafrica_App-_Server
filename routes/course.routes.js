@@ -11,6 +11,7 @@ router.post('/rateACourse', Protect, controllers.rateACourse )
 router.post('/newCategory', controllers.newCategory )
 router.post('/updateCategory', controllers.updateCategory )
 router.post('/flagCourse', controllers.flagCourse )
+router.post('/unFlagCourse', controllers.flagCourse )
 router.post('/reportCourse', controllers.reportCourse )
 
 

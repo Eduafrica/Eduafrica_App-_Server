@@ -14,6 +14,7 @@ import instructorRoute from './routes/studentAuth.routes.js';
 import organizationRoute from './routes/organizationAuth.routes.js';
 import aiChatRoute from './routes/aichat.routes.js';
 import courseRoute from './routes/course.routes.js';
+import adminRoute from './routes/admin.routes.js';
 
 const app = express();
 const server = http.createServer(app); 
@@ -68,6 +69,7 @@ app.use('/api/instructor', instructorRoute);
 app.use('/api/organization', organizationRoute);
 app.use('/api/aiChat', aiChatRoute);
 app.use('/api/course', courseRoute);
+app.use('/api/admin', adminRoute)
 
 // Setup socket.io connection
 io.on('connection', (socket) => {
