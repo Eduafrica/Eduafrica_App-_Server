@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import AiChatModel from '../models/AiChat.js';
 import { v4 as uuidv4 } from 'uuid';
 import StudentModel from '../models/Student.js';
+import UserChatsWithAiModel from '../models/UserChatsWithAi.js';
 
 const edtechafricAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 const zara = edtechafricAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
@@ -9,6 +10,7 @@ const zara = edtechafricAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' })
 
 export async function aiChat(req, res) {
     const { user, name, role, chatId, userId } = req.chatId
+    console.log('CHAT ID', req.chatId)
     //const { } = req.user
     const { message } = req.body
 
@@ -19,7 +21,10 @@ export async function aiChat(req, res) {
 
     try {
         let findUserChat
+        let messageChatData
         findUserChat = await AiChatModel.findOne({ userId: userId });
+        messageChatData = await UserChatsWithAiModel.findOne({ userId: userId });
+
 
         if (!findUserChat) {
             const aiChatData = {
@@ -32,7 +37,18 @@ export async function aiChat(req, res) {
                 aiChatData.expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
             }
             findUserChat = await AiChatModel.create(aiChatData);
-            //console.log('findUserChat', findUserChat)
+        }
+        if (!messageChatData) {
+            const aiUserMessges = {
+                userId: userId,
+                chats: [] 
+            };
+        
+            // If the user is false, set a 2-hour expiration
+            if (!user) {
+                aiUserMessges.expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+            }
+            messageChatData = await UserChatsWithAiModel.create(aiUserMessges);
         }
 
         const chat = zara.startChat({
@@ -83,6 +99,9 @@ export async function aiChat(req, res) {
             try {
                 let jsonString = text.substring(jsonStart, jsonEnd + 1);
                 trimmedMsg = text.substring(jsonStart, jsonEnd + 1);
+                
+                                // Remove comments from JSON string
+                                jsonString = jsonString.replace(/\/\/.*$/gm, '').trim()
 
                 console.log('JSON STRING OBJECT', jsonString)
                 //convert to proper json
@@ -91,20 +110,47 @@ export async function aiChat(req, res) {
                 .replace(/'/g, '"'); 
                 console.log('PROPER JSON', jsonString)
                 const jsonObject = JSON.parse(jsonString);
+                console.log('FULL JSON', jsonObject)
+
                 
                 // Remove JSON array from the final message
-                const finalMessage = text.replace(trimmedMsg, '').trim();
+                let finalMessage
+                //finalMessage = text.replace(trimmedMsg, '').trim();
+
+                finalMessage = text.replace(/(\*\*Here's the updated user data:\*\*[\s\S]*?```[\s\S]*?```)/, '').trim();
 
                 if (finalMessage) {
-                    return ({ success: true, data: { msg: finalMessage } })
+                    const userMsg = { role: 'user' , chat: message }
+                    messageChatData.chats.push(userMsg);
+                    await messageChatData.save();
+
+                    const aiMsg = { role: 'model', chat: finalMessage }
+                    messageChatData.chats.push(aiMsg);
+                    await messageChatData.save();
+
+                    return ({ success: true, data: { msg: messageChatData.chats } })
                 }
             } catch (error) {
                 console.error('Failed to parse JSON AI Chat:', error);
-                return ({ success: true, data: { msg: text } })
+                const userMsg = { role: 'user', chat: message }
+                messageChatData.chats.push(userMsg);
+                await messageChatData.save();
+
+                const aiMsg = { role: 'model', chat: text }
+                messageChatData.chats.push(aiMsg);
+                await messageChatData.save();
+                return ({ success: true, data: { msg: messageChatData.chats } })
             }
         } else {
             // If no JSON string is found, send the original text
-            return ({ success: true, data: { msg: text } })
+            const userMsg = { role: 'user' , chat: message }
+            messageChatData.chats.push(userMsg);
+            await messageChatData.save();
+
+            const aiMsg = { role: 'model', chat: text }
+            messageChatData.chats.push(aiMsg);
+            await messageChatData.save();
+            return ({ success: true, data: { msg: messageChatData.chats } })
         }
     } catch (error) {
         console.log('AI UNABLE TO RESPOND', error)

@@ -71,7 +71,6 @@ const StudentSchema = new mongoose.Schema({
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 },
-{minimize: false},
 {timestamps: true}
 )
 

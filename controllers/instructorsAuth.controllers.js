@@ -7,7 +7,6 @@ import sendEmail from "../middleware/mailer.js";
 import Mailgen from "mailgen";
 import crypto from 'crypto'
 
-
 const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -18,7 +17,7 @@ const mailGenerator = new Mailgen({
 
 //REGISTER INSTRUCTOR
 export async function registerUser(req, res) {
-    const { name, displayName, password, confirmPassword, email, preferredLanguage, country } = req.body
+    const { name, displayName, password, confirmPassword, phoneNumber, email, preferredLanguage, country } = req.body
     if (!email) {
         return res.status(400).json({ success: false, data: 'Please your email address' });
     }
@@ -37,9 +36,16 @@ export async function registerUser(req, res) {
     if (!country) {
         return res.status(400).json({ success: false, data: 'Provide a country' });
     }
+    if (!phoneNumber) {
+        return res.status(400).json({ success: false, data: 'Phone Number is required' });
+    }
 
     if (password.length < 6) {
         return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if(!emailRegex.test(email)){
+        return res.status(401).json({ success: false, data: 'Invalid Email Address' })
     }
 
     const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
@@ -60,11 +66,11 @@ export async function registerUser(req, res) {
         console.log('INSTRUCTOR CODE>>', `EA${generatedInstructorCode}`)
 
         const user = await InstructorModel.create({ 
-            name, displayName, password, confirmPassword, email, preferredLanguage, country, instructorID: `EA${generatedInstructorCode}`
+            name, displayName, password, confirmPassword, email, preferredLanguage, phoneNumber, country, instructorID: `EA${generatedInstructorCode}`
         });
         console.log('USER CREATED');
 
-        const otpCode = await generateOtp(user._id)
+        const otpCode = await generateOtp(user._id, 'instructor')
         console.log('OTP', otpCode)
 
         try {
@@ -76,7 +82,6 @@ export async function registerUser(req, res) {
                 instructions: 'Instructor Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
                 outro: `If you did not Sign Up, please ignore this email and report.
                 `,
-                verifyUrl: verifyUrl,
                 otp: otpCode,
             });
 
@@ -299,3 +304,64 @@ export async function updateProfile(req, res){
         res.status(500).json({ success: false, data: 'Unable to update instructor profile' })
     }
 }
+
+//GET ALL INSTRUCTORS
+export async function getAllInstructor(req, res) {
+    try {
+        let allInstructors
+        allInstructors = await InstructorModel.find()
+
+        if(allInstructors?.length < 0){
+            allInstructors = []
+        }
+        
+        res.status(200).json({ success: true, data: allInstructors })
+    } catch (error) {
+        console.log('UNABLE TO GET ALL INSTRUCTORS', error)
+        res.status(500).json({ success: false, data: 'Unable to get all Instructors' })
+    }
+}
+
+//GET A INSTRUCTOR
+export async function getInstructor(req, res) {
+    const { _id } = req.params
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Instructor ID is required' })
+    }
+    try {
+        const getInstructor = await InstructorModel.findById({ _id: _id })
+
+        res.status(200).json({ success: true, data: getInstructor })
+    } catch (error) {
+        console.log('UNABLE TO GET INSTRUCTOR', error)
+        res.status(500).json({ success: false, data: 'Uanble to get instructor' })
+    }
+}
+
+//TOGGLE BLOCK INSTRUCTOR
+export async function toggleblock(req, res) {
+    const { id } = req.body
+    try {
+        const getUser = await InstructorModel.findById({ _id: id })
+        
+        if(!getUser){
+            return res.status(404).json({ success: false, data: 'Student Account not Found' })
+        }
+
+        // Set getUser.blocked to its inverse (toggle blocked status)
+        getUser.blocked = !getUser.blocked;
+
+        // Save the updated user document
+        await getUser.save();
+
+        res.status(201).json({ 
+            success: true, 
+            data: `Account has been ${getUser.blocked ? 'blocked' : 'unblocked'}` 
+        });
+
+    } catch (error) {
+        console.log('UNABLE TO BLOCK USER ACCOUNT', error)
+        res.status(500).json({ success: false, data: 'Failed to perform blocking action on user account' })
+    }
+}
+

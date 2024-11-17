@@ -1,7 +1,7 @@
 import CourseModel from "../models/Course.js";
 import OtpModel from "../models/Otp.js";
 
-export async function generateOtp(userId) {
+export async function generateOtp(userId, accountType) {
     const generateOtp = () => {
         // Generate a random 6-digit number
         const otp = Math.floor(100000 + Math.random() * 900000).toString(); 
@@ -18,7 +18,8 @@ export async function generateOtp(userId) {
 
     const otpCode = await new OtpModel({
         userId: userId,
-        code: otp
+        code: otp,
+        accountType: accountType
     }).save();
 
     return otp; 

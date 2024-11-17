@@ -7,6 +7,10 @@ const OtpSchema = new mongoose.Schema({
     code: {
         type: Number
     },
+    accountType: {
+        type: String,
+        required: [ true, 'Account type is required' ]
+    },
     createdAt:{
         type: Date,
         default: Date.now(),

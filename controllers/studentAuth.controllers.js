@@ -38,8 +38,13 @@ export async function registerUser(req, res) {
         return res.status(400).json({ success: false, data: 'Provide a country' });
     }
 
-    if (password.length < 8) {
-        return res.status(400).json({ success: false, data: 'Passwords must be at least 8 characters long' });
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if(!emailRegex.test(email)){
+        return res.status(401).json({ success: false, data: 'Invalid Email Address' })
+    }
+
+    if (password.length < 6) {
+        return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
     }
 
     const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
@@ -62,7 +67,7 @@ export async function registerUser(req, res) {
         const user = await StudentModel.create({ name, password, email, displayName, allowNotifications, intrestedCourses, preferredLanguage, country, studentID: `EA${generatedStudentCode}` });
         console.log('USER CREATED');
 
-        const otpCode = await generateOtp(user._id)
+        const otpCode = await generateOtp(user._id, 'student')
         console.log('OTP', otpCode)
 
         try {
@@ -501,8 +506,64 @@ export async function checkLearningReminders() {
 // Run the check every minute (60 seconds)
 setInterval(checkLearningReminders, 60000);
 
+//GET ALL STUDENT
+export async function getAllStudent(req, res) {
+    try {
+        let allStudent
+        allStudent = await StudentModel.find()
 
+        if(allStudent?.length < 0){
+            allStudent = []
+        }
+        
+        res.status(200).json({ success: true, data: allStudent })
+    } catch (error) {
+        console.log('UNABLE TO GET ALL STUDENT', error)
+        res.status(500).json({ success: false, data: 'Unable to get all Student' })
+    }
+}
 
+//GET A STUDENT
+export async function getStudent(req, res) {
+    const { _id } = req.params
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Student ID is required' })
+    }
+    try {
+        const getStudent = await StudentModel.findById({ _id: _id })
+
+        res.status(200).json({ success: true, data: getStudent })
+    } catch (error) {
+        console.log('UNABLE TO GET STUDENT', error)
+        res.status(500).json({ success: false, data: 'Uanble to get student' })
+    }
+}
+
+export async function toggleblock(req, res) {
+    const { id } = req.body
+    try {
+        const getUser = await StudentModel.findById({ _id: id })
+        
+        if(!getUser){
+            return res.status(404).json({ success: false, data: 'Student Account not Found' })
+        }
+
+        // Set getUser.blocked to its inverse (toggle blocked status)
+        getUser.blocked = !getUser.blocked;
+
+        // Save the updated user document
+        await getUser.save();
+
+        res.status(201).json({ 
+            success: true, 
+            data: `Account has been ${getUser.blocked ? 'blocked' : 'unblocked'}` 
+        });
+
+    } catch (error) {
+        console.log('UNABLE TO BLOCK USER ACCOUNT', error)
+        res.status(500).json({ success: false, data: 'Failed to perform blocking action on user account' })
+    }
+}
 
 
 

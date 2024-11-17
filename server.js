@@ -10,24 +10,14 @@ import cors from 'cors';
 //IMPORT ROUTES
 import authRoute from './routes/auth.routes.js';
 import studentRoute from './routes/studentAuth.routes.js';
-import instructorRoute from './routes/studentAuth.routes.js';
+import instructorRoute from './routes/instructorAuth.routes.js';
 import organizationRoute from './routes/organizationAuth.routes.js';
 import aiChatRoute from './routes/aichat.routes.js';
 import courseRoute from './routes/course.routes.js';
+import courseContentRoute from './routes/courseContent.js';
 import adminRoute from './routes/admin.routes.js';
+import orderRoute from './routes/orders.routes.js';
 
-const app = express();
-const server = http.createServer(app); 
-const io = new Server(server, {
-    cors: {
-        origin: process.env.CLIENT_URL, 
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
-
-app.use(cookieParser());
-app.use(express.json());
 
 // CORS setup
 const allowedOrigins = [
@@ -36,6 +26,28 @@ const allowedOrigins = [
     process.env.SERVER_URL,
     '*',
 ];
+
+const app = express();
+const server = http.createServer(app); 
+const io = new Server(server, {
+    cors: {
+        origin: function (origin, callback) {
+            console.log('URL ORIGIN', origin);
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS', 'ORIGIN>', origin));
+            }
+        },
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+
+app.use(cookieParser());
+app.use(express.json());
+
+
 const corsOptions = {
     origin: function (origin, callback) {
         console.log('URL ORIGIN', origin);
@@ -59,6 +71,8 @@ app.use('/api-doc', swaggerUI.serve, swaggerUI.setup(swaggerJSDocs));
 
 // Import DB connection
 import './connection/db.js';
+import { aiChat } from "./controllers/aichat.controllers.js";
+import { ChatId } from "./middleware/auth.js";
 
 // Routes
 app.get('/', (req, res) => {
@@ -70,27 +84,33 @@ app.use('/api/instructor', instructorRoute);
 app.use('/api/organization', organizationRoute);
 app.use('/api/aiChat', aiChatRoute);
 app.use('/api/course', courseRoute);
+app.use('/api/courseContent', courseContentRoute);
 app.use('/api/admin', adminRoute)
+app.use('/api/orders', orderRoute)
+
 
 // Setup socket.io connection
-io.on('connection', (socket) => {
+io.use((socket, next) => {
+    ChatId(socket.request, socket.request.res || {}, next);
+  });
+  
+  io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
-
-    // Listen for incoming messages on aiChat
+  
     socket.on('aiChat', async (data) => {
-        try {
-            const { user, message } = data;
-            const response = await aiChat(data); 
-            socket.emit('aiChatResponse', response);
-        } catch (error) {
-            socket.emit('error', { message: 'AI unable to respond' });
-        }
+      try {
+        const response = await aiChat({ chatId: socket.request.chatId, body: { message: data.message } });
+        socket.emit('aiChatResponse', response.data);
+      } catch (error) {
+        socket.emit('aiChatResponse', { msg: 'AI unable to respond' });
+      }
     });
-
+  
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+      console.log('User disconnected:', socket.id);
     });
-});
+  });
+
 
 // Start server with socket
 const PORT = process.env.PORT || 9000;

@@ -281,14 +281,15 @@ paths:
               - password
               - confirmPassword
               - email
-              - preferredLanguage,
+              - preferredLanguage
+              - phoneNumber
             properties:
               name:
                 type: string
               displayName:
                 type: string
               password:
-                type: string
+                type: strin
               confirmPassword:
                 type: string
               email:
@@ -297,6 +298,8 @@ paths:
                 type: string
               country:
                 type: string
+              phoneNumber:
+                type: phoneNumber
       responses:
         201: 
           description: Signup successful verification OTP sent to instructor email address
@@ -571,6 +574,10 @@ paths:
                 type: array (required at least one)
               language:
                 type: string (required)
+              faq:
+                type: array (optional)
+              syllabus:
+                type: array (optional)
       responses:
         201: 
           description: Cousre created successfull
@@ -582,26 +589,13 @@ paths:
   /api/course/updateCourse:
     post:
       summary: Endpoint to update a course details by instructors
-      description: token is required 
+      description: ndpoint to update a course details by instructors 
       parameters:
         - name: body
           in: body
           required: true
           schema:
             type: object
-            required:
-              - title
-              - about 
-              - desc 
-              - overview 
-              - category 
-              - price 
-              - isDiscountAllowed 
-              - discountPercentage 
-              - coverImage 
-              - studentLevel 
-              - skillsToGain 
-              - language
             properties:
               title:
                 type: string
@@ -627,9 +621,36 @@ paths:
                 type: array
               language:
                 type: string
+              faq:
+                type: array (optional)
+              syllabus:
+                type: array (optional)
       responses:
         200: 
           description: Cousre updated successfull
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/course/requestCourseApproval:
+    post:
+      summary: Endpoint to request for course approval by instructors
+      description: Endpoint to request for course approval by instructors course id is required
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+      responses:
+        200: 
+          description: Cousre approval request submitted
         400:
           description: User error
         500: 
@@ -803,6 +824,31 @@ paths:
           description: User error
         500: 
           description: Server error
+
+  /api/course/getInstructorCourses/:_id:
+    get:
+      summary: Gets all courses of an instructor
+      description: Gets all courses of an instructor *use to get all courses of an instructor pass id of the instructor as params
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/course/getAInstructorCourse/:_id:
+    get:
+      summary: Gets a courses created by an instructor
+      description: Gets all registered courses of a instructor *use to get a courses of an instructor pass id of the instructor as params
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
 
   /api/student/setLearningReminder:
     post:

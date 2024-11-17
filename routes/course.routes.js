@@ -1,6 +1,6 @@
 import express from 'express'
 import * as controllers from '../controllers/course.controllers.js'
-import { Protect } from '../middleware/auth.js'
+import { AdminProtect, InstructorsOrAdminProtect, Protect } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -10,9 +10,14 @@ router.post('/rateACourse', Protect, controllers.rateACourse )
 
 router.post('/newCategory', controllers.newCategory )
 router.post('/updateCategory', controllers.updateCategory )
-router.post('/flagCourse', controllers.flagCourse )
-router.post('/unFlagCourse', controllers.flagCourse )
+router.post('/flagCourse', AdminProtect, controllers.flagCourse )
+router.post('/unFlagCourse', AdminProtect, controllers.unFlagCourse )
 router.post('/reportCourse', controllers.reportCourse )
+
+router.post('/requestCourseApproval', InstructorsOrAdminProtect, controllers.requestCourseApproval)
+router.post('/approveCourse', AdminProtect, controllers.approveCourse )
+router.post('/rejectCourse', AdminProtect, controllers.rejectCourse )
+
 
 
 
@@ -25,6 +30,9 @@ router.get('/getPopularCourse', controllers.getPopularCourse)
 router.get('/getAllCourseCategories', controllers.getAllCourseCategories)
 router.get('/getCourseByCategory/:category', controllers.getCourseByCategory)
 router.get('/getCourseByParams/:param', controllers.getCourseByParams)
+
+router.get('/getInstructorCourses/:_id', InstructorsOrAdminProtect, controllers.getInstructorCourses)
+router.get('/getAInstructorCourse/:_id', InstructorsOrAdminProtect, controllers.getAInstructorCourse)
 
 
 

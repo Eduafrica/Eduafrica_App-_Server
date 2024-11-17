@@ -4,6 +4,7 @@ import { registerMail } from "../middleware/sendEmail.js";
 import AdminModel from "../models/Admin.js";
 import NotificationModel from "../models/Notifications.js";
 import crypto from 'crypto'
+import { generateUniqueCode } from "../middleware/utils.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -35,7 +36,7 @@ export async function createAdmin(req, res) {
         }
 
         const generatedAdminCode = await generateUniqueCode(6)
-        console.log('STUDENT CODE>>', `EA${generatedAdminCode}`)
+        console.log('STAFF CODE>>', `EA${generatedAdminCode}`)
 
 
         const newAdmin = await AdminModel.create({
@@ -115,12 +116,17 @@ export async function login(req, res) {
 
 //FORGOT PASSOWRD
 export async function forgotPassword(req, res) {
-    const { email } = req.body
-    if(!email){
-        return res.status(404).json({ success: false, data: 'Provide your registered email address'})
+    const { name } = req.body
+    if(!name){
+        return res.status(404).json({ success: false, data: 'Provide your registered email address or staff ID'})
     }
     try {
-        const user = await AdminModel.findOne({ email });
+        const isEmail = name.includes('@');
+        console.log('object', name, isEmail)
+
+            const user = isEmail 
+        ? await AdminModel.findOne({ email: name }) 
+        : await AdminModel.findOne({ staffID: name });
 
         if(!user){
             return res.status(404).json({ success: false, data: 'Email Does Not Exist'})
@@ -130,7 +136,7 @@ export async function forgotPassword(req, res) {
 
         await user.save()
         const resetUrl = `${process.env.ADMIN_URL}/reset-password/${resetToken}`
-        console.log('RESET TOKEN', resetToken)
+        console.log('RESET TOKEN', resetUrl)
 
         try {
             // send mail
@@ -162,7 +168,7 @@ export async function forgotPassword(req, res) {
                     subject: 'Password Reset Request',
                     text: emailTemplate
                 })
-                res.status(200).json({success: true, msg: 'Email sent', data: email })
+                res.status(200).json({success: true, msg: 'Reset password link sent to email address', data: user?.user })
                 
             } catch (error) {
                 console.log('FORGOT PASSWORD EMAIL ERROR?>', error)
@@ -192,7 +198,7 @@ export async function resetPassword(req, res) {
         return res.status(400).json({ success: false, data: 'Password and confirm password are required' });
     }
     if (password.length < 6) {
-        return res.status(400).json({ success: false, data: 'Passwords must be at least 8 characters long' });
+        return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
     }
 
     const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
@@ -241,6 +247,9 @@ export async function resetPassword(req, res) {
 export async function editProfile(req, res) {
     const { firstName, lastName, phoneNumber, country, profileImg } = req.body
     try {
+        if(req.body.staffID){
+            return res.status(403).json({ success: false, data: 'Staff ID cannot be updated' })
+        }
         const updateUser = await AdminModel.findByIdAndUpdate(
             req.admin._id,
             {
@@ -249,7 +258,7 @@ export async function editProfile(req, res) {
                     lastName,
                     phoneNumber,
                     country,
-                    profileImg
+                    profileImg,
                 }
             },
             { new: true }
@@ -262,7 +271,7 @@ export async function editProfile(req, res) {
     }
 }
 
-//BLOCK USER
+//BLOCK ADMIN USER
 export async function blockAccount(req, res) {
     const { _id } = req.body
     try {
@@ -290,7 +299,7 @@ export async function blockAccount(req, res) {
     }
 }
 
-//UNBLOCK USER
+//UNBLOCK ADMIN USER
 export async function unBlockAccount(req, res) {
     const { _id } = req.body
     try {
@@ -318,7 +327,7 @@ export async function unBlockAccount(req, res) {
     }
 }
 
-//DELETE USER
+//DELETE ADMIN USER
 export async function deleteAccount(req, res) {
     const { _id } = req.body
     try {
@@ -368,4 +377,9 @@ export async function getAdmin(req, res) {
         console.log('UNABLE TO GET ALL TO ADMIN USERS', error)
         res.status(500).json({ success: false, data: 'Unable to get all users' })
     }
+}
+
+//ADMIN LOGOUT
+export async function signout(req, res){
+    res.clearCookie('edtechafricauth').status(200).json({success: true, data: 'Signout success'})
 }

@@ -106,7 +106,12 @@ const CourseSchema = new mongoose.Schema({
     isBlocked: {
         type: Boolean,
         default: false
-    }
+    },
+    approved: {
+        type: String,
+        default: 'No Request',
+        enum: ['Approved', 'Pending', 'No Request', 'Rejected']
+    },
 },
 {timestamps: true}
 )

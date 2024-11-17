@@ -8,6 +8,7 @@ const CourseContentSchema = new mongoose.Schema({
     slugCode: {
         type: String,
         unique: [true, 'slug Code must be unique']
+        //same with course
     },
     students: {
         type: Array

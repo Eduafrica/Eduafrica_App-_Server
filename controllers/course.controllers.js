@@ -1,13 +1,15 @@
 import { calculateAverageCourseRating, generateUniqueCode } from "../middleware/utils.js"
 import CourseModel from "../models/Course.js"
 import CourseCategoryModel from "../models/CourseCategories.js"
+import CourseContentModel from "../models/CourseContent.js"
+import CourseRejectionModel from "../models/CourseRejectionReason.js"
 import NotificationModel from "../models/Notifications.js"
 import ReportCourseModel from "../models/ReportCourse.js"
 
 //CREATE NEW COURSE INFO
 export async function newCourse(req, res) {
     const { _id, email, name } = req.user
-    const { title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language } = req.body
+    const { title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
     try {
         if(!title || !about || !overview || !price || !coverImage || !studentLevel || !language){
             return res.status(400).json({ success: false, data: 'Fill all required fields'})
@@ -23,7 +25,7 @@ export async function newCourse(req, res) {
         console.log('COURSE SLUG>>', `AFRIC${generatedCourseSlug}`, generatedCourseSlug)
 
         const makeNewCourse = await CourseModel.create({
-            title, about, desc, instructorName: `${instructorName ? instructorName : name}`, instructorEmail: email, instructorId: _id, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, slugCode: `AFRIC${generatedCourseSlug}`
+            title, about, desc, instructorName: `${instructorName ? instructorName : name}`, instructorEmail: email, instructorId: _id, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus, slugCode: `AFRIC${generatedCourseSlug}`
         })
 
         const newNotification = await NotificationModel.create({
@@ -41,13 +43,13 @@ export async function newCourse(req, res) {
 
 //UPDATE COURSE INFO
 export async function updateCourse(req, res) {
-    const { _id, title, instructorName, about, desc, overview, category, price, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language } = req.body
+    const { _id, title, instructorName, about, desc, overview, category, price, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
     try {
         const findCourse = await CourseModel.findByIdAndUpdate(
             _id, 
             {
                 $set: {
-                    title, about, instructorName, desc, overview, category, price, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language
+                    title, about, instructorName, desc, overview, category, price, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus
                 }
             },
             { new: true }
@@ -101,8 +103,8 @@ export async function rateACourse(req, res) {
 export async function getAllCourse(req, res) {
     
     try {
-        //const allCourses = await CourseModel.find({ isBlocked: false }).sort({ createdAt: -1 })
-        const allCourses = await CourseModel.find().sort({ createdAt: -1 })
+        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved' }).sort({ createdAt: -1 })
+        //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
         
@@ -140,7 +142,11 @@ export async function getCourseByCategory(req, res) {
             return res.end()
         }
 
-        const courses = await CourseModel.find({ category: { $in: [catSlug?.category] } });
+        const courses = await CourseModel.find({
+            category: { $in: catSlug?.category }, // No brackets needed if it's already an array
+            isBlocked: false,
+            approved: 'Approved'
+          });
         const coursesWithRatings = await calculateAverageCourseRating(courses);
 
         res.status(200).json({ success: true, data: coursesWithRatings })
@@ -219,6 +225,12 @@ export async function getCourse(req, res) {
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course not found' })
         }
+        if(!getCourse.isBlocked){
+            return res.status(403).json({ success: false, data: 'This course has been blocked by admin' })
+        }
+        if(!getCourse.approved !== 'Approved'){
+            return res.status(403).json({ success: false, data: 'This course has not been approved' })
+        }
 
         const coursesWithRatings = await calculateAverageCourseRating(getCourse);
 
@@ -289,7 +301,7 @@ export async function buyCourse(req, res) {
 
 //FLAG A COURSE
 export async function flagCourse(req, res) {
-    const { _id } = req.body
+    const { _id, reason } = req.body
     try {
         if(!_id){
             return res.status(404).json({ success: false, data: 'No Course ID' })
@@ -342,5 +354,154 @@ export async function unFlagCourse(req, res) {
     } catch (error) {
         console.log('UNABLE TO GET A COURSE')
         res.status(500).json({ success: false, data: 'Unable to get course' })
+    }
+}
+
+//REQUEST COURSE APPROVAL BY COURSE INSTRUCTORS
+export async function requestCourseApproval(req, res) {
+    const { id } = req.body
+    const { _id } =  req.user
+    try {
+        const getCourse = await CourseModel.findById({ _id: id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'No course with this ID' })
+        }
+
+        if (getCourse.instructorId.toString() !== _id.toString()) {
+            return res.status(403).json({ success: false, data: 'Not allowed: Permission Denied' });
+        }
+
+        const getCourseContent = await CourseContentModel.findOne({ courseId: getCourse?._id })
+        if(!getCourseContent || getCourseContent?.sections.length < 1){
+            return res.status(400).json({ success: false, data: 'There must be at least one course chapter content before a request can be made' })
+        }
+
+        getCourse.approved = 'Pending'
+        await getCourse.save()
+
+        const newNotification = await NotificationModel.create({
+            message: `${getCourse.instructorName} course has request for course approval from Admin`,
+            actionBy: req.user._id,
+            name: `${getCourse.instructorName}`
+        })
+
+        res.status(201).json({ success: true, data: 'Course approval request submitted' })
+    } catch (error) {
+        console.log('UNABLE TO PROCESS COURSE APPROVAL REQUEST', error)
+        res.status(500).json({ success: false, data: 'Unable to make request approval' })
+    }
+}
+
+//APPROVE A COURSE BY ADMIN
+export async function approveCourse(req, res) {
+    const { id } = req.body
+    try {
+        if(!id){
+            return res.status(404).json({ success: false, data: 'No Course ID' })
+        }
+        const getCourse = await CourseModel.findById({ _id: id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
+        }
+
+        getCourse.approved = 'Approved'
+        getCourse.isBlocked = false
+        await getCourse.save()
+
+        const newNotification = await NotificationModel.create({
+            message: `${getCourse.instructorName} course has been Approved by Admin`,
+            actionBy: req.admin._id,
+            name: `${req.admin.firstName} ${req.admin.lastName}`
+        })
+
+        res.status(201).json({ success: true, data: 'Course has been approved' })
+    } catch (error) {
+        console.log('UNABLE TO APPROVE USER COURSE', error)
+        res.status(500).json({ success: false, data: 'Unable to approve course' })
+    }
+}
+
+//REJECT A COURSE BY ADMIN
+export async function rejectCourse(req, res) {
+    const { id, reason } = req.body
+    try {
+        if(!id){
+            return res.status(404).json({ success: false, data: 'No Course ID' })
+        }
+        if(!reason){
+            return res.status(404).json({ success: false, data: 'Please provide a reason for rejecting course' })
+        }
+        const getCourse = await CourseModel.findById({ _id: id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
+        }
+
+        getCourse.approved = 'Rejected'
+        await getCourse.save()
+
+        const courseExist = CourseRejectionModel.findOne({ courseId: id })
+        if(courseExist){
+            courseExist.reasons.push(reason)
+            await courseExist.save()
+
+            const newNotification = await NotificationModel.create({
+                message: `${getCourse.instructorName} course has been Rejected by Admin`,
+                actionBy: req.admin._id,
+                name: `${req.admin.firstName} ${req.admin.lastName}`
+            })
+
+            return res.status(201).json({ success: true, data: 'Course Rejected successfull' })
+        }
+
+        const newRejection = await CourseRejectionModel.create({
+            courseId: id, 
+        })
+
+        newRejection.reasons.push(reason)
+        await newRejection.save()
+
+        return res.status(201).json({ success: true, data: 'Course Rejected successfull' })
+    } catch (error) {
+        console.log('UNDABLE TO REJECT COURSE', error)
+        res.status(500).json({ success: false, data: 'Unable to reject course' })
+    }
+}
+
+//GET ALL COURSE OF AN INSTRUCTOR
+export async function getInstructorCourses(req, res) {
+    const { _id } = req.params
+    try {
+        if(!_id){
+            return res.status(400).json({ success: false, data: 'A Instructor ID is required'})
+        }
+
+        const getCourses = await CourseModel.find({ instructorId: _id })
+
+        res.status(200).json({ success: true, data: getCourses})
+    } catch (error) {
+        console.log('UNABLE TO GET ALL COURSE OF AN INSTRUCTORS', error)
+        res.status(500).json({ success: false, data: 'Unable to get all course of an instructor'})
+    }
+}
+
+//GET A COURSE OF AN INSTRUCTORS
+export async function getAInstructorCourse(req, res) {
+    const { _id } = req.params
+
+    try {
+        if(!_id){
+            return res.status(400).json({ success: false, data: 'A Instructor ID is required'})
+        }
+
+        const getCourses = await CourseModel.findOne({ _id: _id })
+
+        if(!getCourses){
+            return res.status(400).json({ success: false, data: 'Course Not Found'})
+        }
+
+        res.status(200).json({ success: true, data: getCourses})
+    } catch (error) {
+        console.log('UNABLE TO GET ALL COURSE OF AN INSTRUCTORS', error)
+        res.status(500).json({ success: false, data: 'Unable to get all course of an instructor'})
     }
 }

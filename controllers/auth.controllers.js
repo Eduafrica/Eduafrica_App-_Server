@@ -1,3 +1,5 @@
+import InstructorModel from "../models/Instructors.js"
+import organizationModel from "../models/Organization.js"
 import OtpModel from "../models/Otp.js"
 import StudentModel from "../models/Student.js"
 
@@ -13,8 +15,14 @@ export async function verifyOtp(req, res) {
             return res.status(404).json({ success: false, data: 'Invalid code' })
         }
 
-        const getUser = await StudentModel.findOne({ _id: getOtp.userId })
-        
+        let getUser 
+        if (getOtp.accountType === 'student') {
+            getUser = await StudentModel.findById({ _id: getOtp.userId });
+          } else if (getOtp.accountType === 'instructor') {
+            getUser = await InstructorModel.findById({ _id: getOtp.userId });
+          } else if (getOtp.accountType === 'organization') {
+            getUser = await organizationModel.findById({ _id: getOtp.userId });
+          }
         getUser.verified = true
         await getUser.save()
 
