@@ -423,7 +423,9 @@ export async function approveCourse(req, res) {
 
 //REJECT A COURSE BY ADMIN
 export async function rejectCourse(req, res) {
-    const { id, reason } = req.body
+    const { id, reason, block } = req.body
+    console.log(id, 'REject data')
+
     try {
         if(!id){
             return res.status(404).json({ success: false, data: 'No Course ID' })
@@ -437,11 +439,15 @@ export async function rejectCourse(req, res) {
         }
 
         getCourse.approved = 'Rejected'
+        if(block){
+            getCourse.isBlocked = true
+            await getCourse.save()
+        }
         await getCourse.save()
 
-        const courseExist = CourseRejectionModel.findOne({ courseId: id })
+        const courseExist = await CourseRejectionModel.findOne({ courseId: id })
         if(courseExist){
-            courseExist.reasons.push(reason)
+            courseExist.reasons.push({reason})
             await courseExist.save()
 
             const newNotification = await NotificationModel.create({
@@ -457,8 +463,14 @@ export async function rejectCourse(req, res) {
             courseId: id, 
         })
 
-        newRejection.reasons.push(reason)
+        newRejection.reasons.push({reason})
         await newRejection.save()
+
+        const newNotification = await NotificationModel.create({
+            message: `${getCourse.instructorName} course has been Rejected by Admin`,
+            actionBy: req.admin._id,
+            name: `${req.admin.firstName} ${req.admin.lastName}`
+        })
 
         return res.status(201).json({ success: true, data: 'Course Rejected successfull' })
     } catch (error) {
@@ -467,41 +479,89 @@ export async function rejectCourse(req, res) {
     }
 }
 
-//GET ALL COURSE OF AN INSTRUCTOR
+// GET ALL COURSE OF AN INSTRUCTOR
 export async function getInstructorCourses(req, res) {
-    const { _id } = req.params
+    const { _id } = req.params;
     try {
-        if(!_id){
-            return res.status(400).json({ success: false, data: 'A Instructor ID is required'})
+        if (!_id) {
+            return res.status(400).json({ success: false, data: 'An Instructor ID is required' });
         }
 
-        const getCourses = await CourseModel.find({ instructorId: _id })
+        // Fetch all courses for the instructor
+        const getCourses = await CourseModel.find({ instructorId: _id });
 
-        res.status(200).json({ success: true, data: getCourses})
+        // Check if a user is an instructor or organisation
+        if (req.user) {
+            const processedCourses = await Promise.all(
+                getCourses.map(async (course) => {
+                    // Convert the course document to a plain object
+                    const courseObject = course.toObject();
+
+                    if (course.approved === 'Rejected' || course.isBlocked) {
+                        // Find rejection reasons for the course
+                        const courseRejection = await CourseRejectionModel.findOne({ courseId: course._id });
+
+                        if (courseRejection && courseRejection.reasons.length > 0) {
+                            // Get the latest reason based on createdAt
+                            const latestReason = courseRejection.reasons
+                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+
+                            // Add the latest rejection reason to the course object
+                            courseObject.rejectionReason = latestReason.reason;
+                        }
+                    }
+
+                    return courseObject;
+                })
+            );
+
+            return res.status(200).json({ success: true, data: processedCourses });
+        } else {
+            return res.status(200).json({ success: true, data: getCourses });
+        }
     } catch (error) {
-        console.log('UNABLE TO GET ALL COURSE OF AN INSTRUCTORS', error)
-        res.status(500).json({ success: false, data: 'Unable to get all course of an instructor'})
+        console.log('UNABLE TO GET ALL COURSE OF AN INSTRUCTOR', error);
+        res.status(500).json({ success: false, data: 'Unable to get all courses of an instructor' });
     }
 }
 
-//GET A COURSE OF AN INSTRUCTORS
+// GET A SINGLE COURSE OF AN INSTRUCTOR
 export async function getAInstructorCourse(req, res) {
-    const { _id } = req.params
+    const { _id } = req.params;
 
     try {
-        if(!_id){
-            return res.status(400).json({ success: false, data: 'A Instructor ID is required'})
+        if (!_id) {
+            return res.status(400).json({ success: false, data: 'A Course ID is required' });
         }
 
-        const getCourses = await CourseModel.findOne({ _id: _id })
+        // Find the course by ID
+        const course = await CourseModel.findOne({ _id });
 
-        if(!getCourses){
-            return res.status(400).json({ success: false, data: 'Course Not Found'})
+        if (!course) {
+            return res.status(404).json({ success: false, data: 'Course Not Found' });
         }
 
-        res.status(200).json({ success: true, data: getCourses})
+        // Convert the course document to a plain object to add properties
+        const courseObject = course.toObject();
+
+        // Check if the course is rejected
+        if (course.approved === 'Rejected') {
+            // Find rejection reasons for the course
+            const courseRejection = await CourseRejectionModel.findOne({ courseId: course._id });
+
+            if (courseRejection && courseRejection.reasons.length > 0) {
+                // Get the latest reason based on createdAt
+                const latestReason = courseRejection.reasons
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+
+                // Add the latest rejection reason to the course object
+                courseObject.rejectionReason = latestReason.reason;
+            }
+        }
+
+        res.status(200).json({ success: true, data: courseObject });
     } catch (error) {
-        console.log('UNABLE TO GET ALL COURSE OF AN INSTRUCTORS', error)
-        res.status(500).json({ success: false, data: 'Unable to get all course of an instructor'})
+        console.error('UNABLE TO GET A COURSE OF AN INSTRUCTOR', error);
+        res.status(500).json({ success: false, data: 'Unable to get the course of an instructor' });
     }
 }
