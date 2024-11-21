@@ -22,14 +22,53 @@ const organizationSchema = new mongoose.Schema({
     },
     fromOrganisation: {
         type: Boolean,
-        default: false
+        default: true
     },
     organisationName: {
         type: String
     },
-    organisationId: {
+    displayName: {
         type: String
     },
+    organisationID: {
+        type: String
+    },
+    organisationUrl: {
+        type: String
+    },
+    phoneNumber: {
+        type: String
+    },
+    whatsappNumber: {
+        type: String
+    },
+    profileImg: {
+        type: String,
+    },
+    totalTransaction: {
+        type: Number
+    },
+    allowNotifications: {
+        type: Boolean,
+        default: false,
+    },
+    preferredLanguage: {
+        type: String,
+        default: 'English'
+    },
+    country: {
+        type: String,
+    },
+    verified: {
+        type: Boolean,
+        default: false
+    },
+    blocked: {
+        type: Boolean,
+        default: false
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
 },
 {timestamps: true}
 )
@@ -48,15 +87,15 @@ organizationSchema.pre('save', async function(next){
     }
 })
 
-organizationSchema.methods.matchStudentPasswords = async function(password){
+organizationSchema.methods.matchOrganizationPasswords = async function(password){
     return await bcryptjs.compare(password, this.password)
 }
 
-organizationSchema.methods.getStudentSignedToken = function(){
+organizationSchema.methods.getOrganizationSignedToken = function(){
     return jsonwebtoken.sign({ id: this._id, verified: this.verified, userType: this.accountType}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE})
 }
 
-organizationSchema.methods.getStudentResetPasswordToken = function(){
+organizationSchema.methods.getOrganizationResetPasswordToken = function(){
     const resetToken = crypto.randomBytes(20).toString('hex');
 
     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')

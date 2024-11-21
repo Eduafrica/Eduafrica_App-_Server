@@ -3,7 +3,9 @@ import * as controllers from '../controllers/admin.controllers.js'
 import { AdminProtect, AdminRole } from "../middleware/auth.js";
 const router = express.Router()
 
-router.post('/createAdmin', AdminProtect, AdminRole(['Admin']), controllers.createAdmin) //auth
+router.post('/register', controllers.createAdmin)
+//router.post('/approveAdmin', controllers.approveAdmin)
+router.post('/approveAdmin', AdminProtect, AdminRole(['Admin']), controllers.approveAdmin) //auth
 router.post('/login', controllers.login)
 router.post('/forgotPassword', controllers.forgotPassword)
 router.post('/resetPassword/:resetToken', controllers.resetPassword)

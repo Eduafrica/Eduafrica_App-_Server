@@ -227,7 +227,7 @@ export async function forgotPassword(req, res) {
     }
 }
 
-//STUDINSTRUCTORENT RESET PASSWORD
+//INSTRUCTOR RESET PASSWORD
 export async function resetPassword (req, res){
     const { password, confirmPassword } = req.body
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex')
@@ -309,13 +309,15 @@ export async function updateProfile(req, res){
 export async function getAllInstructor(req, res) {
     try {
         let allInstructors
-        allInstructors = await InstructorModel.find()
+        allInstructors = await InstructorModel.find().select('-password')
 
         if(allInstructors?.length < 0){
             allInstructors = []
         }
+
+        const data = allInstructors.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         
-        res.status(200).json({ success: true, data: allInstructors })
+        res.status(200).json({ success: true, data: data })
     } catch (error) {
         console.log('UNABLE TO GET ALL INSTRUCTORS', error)
         res.status(500).json({ success: false, data: 'Unable to get all Instructors' })
@@ -329,7 +331,7 @@ export async function getInstructor(req, res) {
         return res.status(400).json({ success: false, data: 'Instructor ID is required' })
     }
     try {
-        const getInstructor = await InstructorModel.findById({ _id: _id })
+        const getInstructor = await InstructorModel.findById({ _id: _id }).select('-password')
 
         res.status(200).json({ success: true, data: getInstructor })
     } catch (error) {

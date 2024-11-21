@@ -23,15 +23,16 @@ const AdminSchema = new mongoose.Schema({
     },
     phoneNumber: {
         type: String,
-        required: [ true, 'Phone number is required']
+        //required: [ true, 'Phone number is required']
     },
     country: {
         type: String,
-        required: [ true, 'Country is required']
+        //required: [ true, 'Country is required']
     },
     role: {
         type: String,
         required: [ true, 'An Admin role is required'],
+        default: 'Staff',
         enum: ['Staff', 'Manager', 'Admin']
     },
     profileImg: {
@@ -43,6 +44,14 @@ const AdminSchema = new mongoose.Schema({
         required: [ true, 'Staff ID is required']
     },
     blocked: {
+        type: Boolean,
+        default: true
+    },
+    approved: {
+        type: Boolean,
+        default: false
+    },
+    verified: {
         type: Boolean,
         default: false
     },

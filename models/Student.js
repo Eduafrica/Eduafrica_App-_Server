@@ -60,6 +60,9 @@ const StudentSchema = new mongoose.Schema({
         day: { type: String, required: true },
         time: { type: String, required: true }, 
     }],
+    fromOrganisation: {
+        type: Boolean,
+    },
     verified: {
         type: Boolean,
         default: false

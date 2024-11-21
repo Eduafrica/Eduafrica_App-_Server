@@ -25,7 +25,9 @@ router.post('/rejectCourse', AdminProtect, controllers.rejectCourse )
 
 //GET ROUTES
 router.get('/getAllCourse',  controllers.getAllCourse)
+router.get('/getAllCourseAdmin',  controllers.getAllCourseAdmin)
 router.get('/getCourse/:_id', controllers.getCourse)
+router.get('/getACourseAdmin/:_id', controllers.getACourseAdmin)
 router.get('/getPopularCourse', controllers.getPopularCourse)
 router.get('/getAllCourseCategories', controllers.getAllCourseCategories)
 router.get('/getCourseByCategory/:category', controllers.getCourseByCategory)

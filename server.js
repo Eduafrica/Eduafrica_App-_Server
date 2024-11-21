@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 config();
 
 import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 import cors from 'cors';
 
 //IMPORT ROUTES
@@ -17,6 +18,8 @@ import courseRoute from './routes/course.routes.js';
 import courseContentRoute from './routes/courseContent.js';
 import adminRoute from './routes/admin.routes.js';
 import orderRoute from './routes/orders.routes.js';
+import uploadRoute from './routes/upload.routes.js'; //TO upload course files
+
 
 
 // CORS setup
@@ -47,6 +50,9 @@ const io = new Server(server, {
 app.use(cookieParser());
 app.use(express.json());
 
+// Set up bodyParser to parse incoming requests
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -87,6 +93,7 @@ app.use('/api/course', courseRoute);
 app.use('/api/courseContent', courseContentRoute);
 app.use('/api/admin', adminRoute)
 app.use('/api/orders', orderRoute)
+app.use('/api/upload', uploadRoute)
 
 
 // Setup socket.io connection

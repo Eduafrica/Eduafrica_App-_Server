@@ -24,19 +24,16 @@ const CourseContentSchema = new mongoose.Schema({
             courseNote: {
                 type: String
             },
-            assest: [
-                {
-                    assestLink: {
-                        type: String
-                    },
-                    assestType: {
-                        type: String
-                    }
-                } 
-            ],
+            assestLink: {
+                type: String
+            },
+            assestType: {
+                type: String,
+                //enum: ['video', 'audio', 'image', 'pdf']
+            },
             assignment: {
-                
-            }
+                type: String,
+            },
         }
     ]
 },

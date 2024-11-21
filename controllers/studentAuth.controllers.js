@@ -118,7 +118,7 @@ export async function login(req, res) {
         if(!user.verified){
             let otpExist = await OtpModel.findOne({ userId: user._id})
             if(!otpExist){
-                const otpCode = generateOtp(user._id)
+                const otpCode = await generateOtp(user._id, 'student')
                 console.log('OTP CODE', otpCode)
 
                 try {
@@ -515,8 +515,10 @@ export async function getAllStudent(req, res) {
         if(allStudent?.length < 0){
             allStudent = []
         }
+
+        const data = allStudent.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         
-        res.status(200).json({ success: true, data: allStudent })
+        res.status(200).json({ success: true, data: data })
     } catch (error) {
         console.log('UNABLE TO GET ALL STUDENT', error)
         res.status(500).json({ success: false, data: 'Unable to get all Student' })

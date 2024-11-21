@@ -4,7 +4,8 @@ import { registerMail } from "../middleware/sendEmail.js";
 import AdminModel from "../models/Admin.js";
 import NotificationModel from "../models/Notifications.js";
 import crypto from 'crypto'
-import { generateUniqueCode } from "../middleware/utils.js";
+import { generateOtp, generateUniqueCode } from "../middleware/utils.js";
+import OtpModel from "../models/Otp.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -16,12 +17,12 @@ const mailGenerator = new Mailgen({
 
 //CREATE A NEW ADMIN USER
 export async function createAdmin(req, res) {
-    const { firstName, lastName, email, password, phoneNumber, country, role } = req.body
-    if(!firstName || !lastName || !email|| !password || !phoneNumber || !country || !role){
+    const { firstName, lastName, email, password } = req.body
+    if(!firstName || !lastName || !email || !password){
         return res.status(400).json({ success: true, data: 'All Fields are required' })
     }
     if (password.length < 6) {
-        return res.status(400).json({ success: false, data: 'Passwords must be at least 8 characters long' });
+        return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
     }
 
     const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
@@ -40,13 +41,16 @@ export async function createAdmin(req, res) {
 
 
         const newAdmin = await AdminModel.create({
-            firstName, lastName, email, password, phoneNumber, country, role, staffID: `EA${generatedAdminCode}`
+            firstName, lastName, email, password, staffID: `EA${generatedAdminCode}`
         })
 
+        const otpCode = await generateOtp(newAdmin._id, 'admin')
+        console.log('OTP', otpCode)
+
         const newNotification = await NotificationModel.create({
-            message: `New Admin user added`,
-            actionBy: req.admin._id,
-            name: `${req.admin.firstName} ${req.admin.lastName}`
+            message: `New Admin user register`,
+            actionBy: newAdmin._id,
+            name: `${firstName} ${lastName}`
         })
 
         try {
@@ -55,13 +59,13 @@ export async function createAdmin(req, res) {
                 userEmail: newAdmin.email,
                 subject: 'EDTRCH AFRIC ADMIN ACCOUNT CREATED SUCCESS',
                 intro: 'Your Edu Afric admin account has been created successfull',
-                instructions: `Vist ${process.env.ADMIN_URL} to Login into your account to get started`,
+                instructions: `Verify your account with this OTP. OTP is valid for one (1) Hour.`,
                 outro: `If you have further question contact Admin for support`,
-                otp: newAdmin.email,
-                textName: 'Email'
+                otp: otpCode,
+                textName: 'OTP'
             });
 
-            return res.status(200).json({ success: true, data: `${firstName} ${lastName} has been successfully made an admin` });
+            return res.status(200).json({ success: true, data: `${firstName} ${lastName} account has been successfully created` });
         } catch (error) {
             console.log('ERROR SENDING VERIFY OTP EMAIL', error);
         }
@@ -72,6 +76,51 @@ export async function createAdmin(req, res) {
         res.status(500).json({ success: false, data: 'Unable to create Admin user' })
     }
     
+}
+
+//APPROVE ADMIN
+export async function approveAdmin(req, res) {
+    const { id, role } = req.body
+    try {
+        const getAdmin = await AdminModel.findOne({ _id: id })
+        if(!getAdmin){
+            return res.status(400).json({ success: false, data: 'Admin user with this ID does not exist' })
+        }
+
+        getAdmin.blocked = false
+        getAdmin.approved = true
+        getAdmin.role = role
+        await getAdmin.save()
+
+        const newNotification = await NotificationModel.create({
+            message: `${getAdmin?.firstName} ${getAdmin?.lastName} has been approved by ${req.admin.firstName} as a new admin member with role of: ${role}`,
+            actionBy: req.admin._id,
+            name: `${req.admin.firstName} ${req.admin.lastName}`
+        })
+
+        try {
+            await registerMail({
+                username: `${getAdmin?.firstName} ${getAdmin?.lastName}`,
+                userEmail: getAdmin.email,
+                subject: 'EDTECH AFRIC ADMIN ACCOUNT APPROVED SUCCESS',
+                intro: 'Your Edu Afric admin account has been approved successfull',
+                instructions: `Vist ${process.env.ADMIN_URL} to Login into your account to get started`,
+                outro: `If you have further question contact Admin for support`,
+                otp: getAdmin.email,
+                textName: 'Email'
+            });
+
+            return res.status(200).json({ success: true, data: `${getAdmin?.firstName} ${getAdmin?.lastName} has been successfully made an admin` });
+        } catch (error) {
+            console.log('ERROR SENDING APPROVAL OTP EMAIL', error);
+        }
+
+
+        res.status(201).json({ success: true, data: 'Admin user approved and updated successful' })
+    } catch (error) {
+        console.log('UNABLE TO APPROVE ADMIN USER', error)
+        res.status(500).json({ success: false, data: 'Unable to approve admin user' })
+    }
 }
 
 //ADMIN LOGIN
@@ -87,14 +136,47 @@ export async function login(req, res) {
         ? await AdminModel.findOne({ email: name }) 
         : await AdminModel.findOne({ staffID: name });
 
+        console.log('USER', user)
+
         if(!user){
             return res.status(401).json({ success: false, data: 'Invalid User'})
         }
 
+        if(!user.verified){
+            console.log('object', user._id.toString())
+            let otpExist = await OtpModel.findOne({ userId: user._id.toString() })
+            if(!otpExist){
+                const otpCode = await generateOtp(user._id, 'admin')
+                console.log('OTP CODE', otpCode)
+    
+                try {
+                    await registerMail({
+                        username: `${user?.firstName} ${user?.lastName}`,
+                        userEmail: user.email,
+                        subject: 'EDTRCH AFRIC ADMIN ACCOUNT CREATED SUCCESS',
+                        intro: 'Your Edu Afric admin account has been created successfull',
+                        instructions: `Verify your account with this OTP. OTP is valid for one (1) Hour.`,
+                        outro: `If you have further question contact Admin for support`,
+                        otp: otpCode,
+                        textName: 'OTP'
+                    });
+        
+                    return res.status(200).json({ success: false, isVerified: false, data: `Signup successful check otp code sent to ${user.email} to activate account` });
+                } catch (error) {
+                    console.log('ERROR SENDING VERIFY OTP EMAIL', error);
+                }
+            }   else {
+                return res.status(200).json({ success: false, isVerified: false, data: 'Account Not Verified. An Email Has been sent to You Please Verify Account'})
+            }
+        }
+
+        if(!user.approved){
+            return res.status(401).json({ success: false, data: 'Account is yet to be approved'})
+        }
         if(user.blocked){
             return res.status(401).json({ success: false, data: 'Account has been blocked'})
         }
-        
+
         const isMatch = await user.matchAdminPassword(password);
 
         if(!isMatch){

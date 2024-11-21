@@ -1,3 +1,4 @@
+import AdminModel from "../models/Admin.js"
 import InstructorModel from "../models/Instructors.js"
 import organizationModel from "../models/Organization.js"
 import OtpModel from "../models/Otp.js"
@@ -22,6 +23,8 @@ export async function verifyOtp(req, res) {
             getUser = await InstructorModel.findById({ _id: getOtp.userId });
           } else if (getOtp.accountType === 'organization') {
             getUser = await organizationModel.findById({ _id: getOtp.userId });
+          } else if (getOtp.accountType === 'admin') {
+            getUser = await AdminModel.findById({ _id: getOtp.userId });
           }
         getUser.verified = true
         await getUser.save()

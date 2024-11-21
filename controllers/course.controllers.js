@@ -115,6 +115,23 @@ export async function getAllCourse(req, res) {
     }
 }
 
+//GET ALL COURSE ADMIN
+export async function getAllCourseAdmin(req, res) {
+    
+    try {
+        const allCourses = await CourseModel.find().sort({ createdAt: -1 })
+        //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
+
+        const coursesWithRatings = await calculateAverageCourseRating(allCourses);
+        
+        res.status(200).json({ success: true, data: coursesWithRatings })
+    } catch (error) {
+        console.log('UNABLE TO GET ALL COURSE', error)
+        res.status(500).json({ success: false, data: 'Unable to get all course'})
+    }
+}
+
+
 //GET ALL COURSE CATEGORIES
 export async function getAllCourseCategories(req, res) {
     try {
@@ -230,6 +247,29 @@ export async function getCourse(req, res) {
         }
         if(!getCourse.approved !== 'Approved'){
             return res.status(403).json({ success: false, data: 'This course has not been approved' })
+        }
+
+        const coursesWithRatings = await calculateAverageCourseRating(getCourse);
+
+        res.status(200).json({ success: true, data: coursesWithRatings })
+    } catch (error) {
+        console.log('UNABLE TO GET A COURSE', error)
+        res.status(500).json({ success: false, data: 'Unable to get course' })
+    }
+}
+
+//GET COURSE BY ID ADMIN
+export async function getACourseAdmin(req, res) {
+    const { _id } = req.params
+    console.log('RESD', req.body, _id)
+    try {
+        if(!_id){
+            return res.status(404).json({ success: false, data: 'No Course ID' })
+        }
+
+        const getCourse = await CourseModel.findById({ _id: _id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
         }
 
         const coursesWithRatings = await calculateAverageCourseRating(getCourse);
@@ -372,7 +412,7 @@ export async function requestCourseApproval(req, res) {
         }
 
         const getCourseContent = await CourseContentModel.findOne({ courseId: getCourse?._id })
-        if(!getCourseContent || getCourseContent?.sections.length < 1){
+        if(!getCourseContent || getCourseContent === null || getCourseContent?.sections.length < 1){
             return res.status(400).json({ success: false, data: 'There must be at least one course chapter content before a request can be made' })
         }
 

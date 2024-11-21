@@ -59,7 +59,20 @@ export const Protect = async (req, res, next) => {
         return res.status(403).json({ success: false, data: 'User Forbidden Please Login' });
       }
     }
+};
+
+  //Allowed user roles:
+export const UserRole = (allowedRoles) => {
+  return (req, res, next) => {
+    const { user } = req;
+
+    if (!user || !user.accountType || !allowedRoles.includes(user.accountType)) {
+      return res.status(403).json({ success: false, data: 'Access Denied: Insufficient Permissions' });
+    }
+
+    next();
   };
+};
 
 // Middleware to check and create a chatId
 export const ChatId = async (req, res, next) => {
@@ -164,6 +177,12 @@ export const AdminProtect = async (req, res, next) => {
     if (isUser.blocked === true) {
       return res.status(404).json({ success: false, data: 'User Account has been blocked' });
     }
+    if (isUser.approved === false) {
+      return res.status(404).json({ success: false, data: 'NOT AUTHORIZED' });
+    }
+    if (isUser.verified === false) {
+      return res.status(404).json({ success: false, data: 'Account is yet to be verified' });
+    }
 
     req.admin = isUser
 
@@ -215,11 +234,20 @@ export const InstructorsOrAdminProtect = async (req, res, next) => {
         return res.status(403).json({ success: false, data: 'Access denied. Insuffient Permission.' });
       }
 
-      const instructor = await InstructorModel.findById(user.id);
-      if (!instructor) return res.status(404).json({ success: false, data: 'Instructor not found.' });
-      if (instructor.blocked) return res.status(403).json({ success: false, data: 'Instructor account is blocked.' });
+      let userAccount 
 
-      req.user = instructor; // Attach instructor to request
+      if(user.userType === 'instructor'){
+        userAccount = await InstructorModel.findById(user.id);
+      }
+      if(user.userType === 'organization'){
+        userAccount = await organizationModel.findById(user.id);
+      }
+
+      //const instructor = await InstructorModel.findById(user.id);
+      if (!userAccount) return res.status(404).json({ success: false, data: 'Instructor not found.' });
+      if (userAccount.blocked) return res.status(403).json({ success: false, data: 'Instructor account is blocked.' });
+
+      req.user = userAccount; // Attach instructors account to request
       return next();
     }
 
