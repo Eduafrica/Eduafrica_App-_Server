@@ -898,3 +898,27 @@ paths:
           description: User error
         500: 
           description: Server error
+
+  /api/country/getCountries:
+    get:
+      summary: Gets all countries
+      description: Gets all countries edu africa operates in
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/country/getCountry/:id:
+    get:
+      summary: Gets a country
+      description: Gets all country edu africa operates in requires ID as params
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error

@@ -6,6 +6,8 @@ import NotificationModel from "../models/Notifications.js";
 import crypto from 'crypto'
 import { generateOtp, generateUniqueCode } from "../middleware/utils.js";
 import OtpModel from "../models/Otp.js";
+import SiteSettingModel from "../models/SiteSettings.js";
+import { console } from "inspector";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -327,7 +329,7 @@ export async function resetPassword(req, res) {
 
 //UPDATE PROFILE
 export async function editProfile(req, res) {
-    const { firstName, lastName, phoneNumber, country, profileImg } = req.body
+    const { firstName, lastName, phoneNumber, country, profileImg, bio, email } = req.body
     try {
         if(req.body.staffID){
             return res.status(403).json({ success: false, data: 'Staff ID cannot be updated' })
@@ -341,15 +343,57 @@ export async function editProfile(req, res) {
                     phoneNumber,
                     country,
                     profileImg,
+                    bio,
+                    email
                 }
             },
             { new: true }
         )
         //console.log(updateUser)
-        res.status(200).json({ success: true, data: 'Profile Updated Successful' })
+        const { password, resetPasswordExpire, resetPasswordToken, _id, ...userData } = updateUser._doc
+        res.status(200).json({ success: true, msg: 'Profile Updated Successful', data: {success: true, data: userData } })
     } catch (error) {
         console.log('UNABLE TO UPDATE ADMIN USER PROFILE', error)
         res.status(500).json({ success: false, data: 'Unable to update profile' })
+    }
+}
+
+//UPDATE PASSWORD
+export async function updatePassword(req, res){
+    const { currentPassword, password, confirmPassword } = req.body
+    if (password.length < 6) {
+        return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
+    }
+
+    if(password !== confirmPassword){
+        return res.status(400).json({ success: false, data: 'New password and confirm password do not match' })
+    }
+
+    const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
+    if (!specialChars.test(password)) {
+        return res.status(400).json({ success: false, data: 'Passwords must contain at least one special character' });
+    }
+
+    try {
+        const getUser = await AdminModel.findById({ _id: req.admin._id })
+
+        const isMatch = await getUser.matchAdminPassword(currentPassword);
+
+        if(!isMatch){
+            return res.status(401).json({ success: false, data: 'Invalid current password'})
+        }
+
+        if(currentPassword === password){
+            return res.status(401).json({ success: false, data: 'New password cannot be the same with current password'})
+        }
+
+        getUser.password = password
+        await getUser.save()
+
+        res.status(201).json({ success: true, data: `Password Updated Successful` })
+    } catch (error) {
+        console.log('UNABEL TO UPDATE PASSWORD', error)
+        res.status(500).json({ success: false, data: 'Unable to update password' })
     }
 }
 
@@ -464,4 +508,48 @@ export async function getAdmin(req, res) {
 //ADMIN LOGOUT
 export async function signout(req, res){
     res.clearCookie('edtechafricauth').status(200).json({success: true, data: 'Signout success'})
+}
+
+//SITE SETTINGS
+export async function siteSetting(req, res) {
+    const { siteImage, siteName, siteLink, siteEmail, siteCountry, salesPercentage } = req.body
+    console.log('object site settings', req.body)
+    try {
+        const getSettings = await SiteSettingModel.findOne()
+
+        if(getSettings){
+            const updateSettings = await SiteSettingModel.findByIdAndUpdate(
+                getSettings._id,
+                {
+                    $set: {
+                        siteImage, siteName, siteLink, siteEmail, siteCountry, salesPercentage
+                    }
+                },
+                { new: true }
+            )
+
+            return res.status(201).json({ success: true, data: 'Site settings is updated successful'}) 
+        }
+
+        const newSettings = await SiteSettingModel.create({
+            siteImage, siteName, siteLink, siteEmail, siteCountry, salesPercentage
+        })
+
+        res.status(201).json({ success: true, data: 'Site settings is updated successful'})
+    } catch (error) {
+        console.log('UNABLE TO UPDATE SITE SETTINGS', error)
+        res.status(500).json({ success: false, data: 'Unable to update site settings'})
+    }
+}
+
+//GET SITE SETTINGS
+export async function getSiteSettings(req, res) {
+    try {
+        const getSettings = await SiteSettingModel.findOne()
+
+        res.status(200).json({ success: true, data: getSettings })
+    } catch (error) {
+        console.log('UNABLE TO GET ALL SITES SETTINGS', error)
+        res.status(500).json({ success: false, data: 'Unable to get sites settings' })
+    }
 }

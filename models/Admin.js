@@ -29,6 +29,9 @@ const AdminSchema = new mongoose.Schema({
         type: String,
         //required: [ true, 'Country is required']
     },
+    bio: {
+        type: String,
+    },
     role: {
         type: String,
         required: [ true, 'An Admin role is required'],

@@ -19,7 +19,7 @@ import courseContentRoute from './routes/courseContent.js';
 import adminRoute from './routes/admin.routes.js';
 import orderRoute from './routes/orders.routes.js';
 import uploadRoute from './routes/upload.routes.js'; //TO upload course files
-
+import countryRoute from './routes/countries.routes.js';
 
 
 // CORS setup
@@ -94,6 +94,7 @@ app.use('/api/courseContent', courseContentRoute);
 app.use('/api/admin', adminRoute)
 app.use('/api/orders', orderRoute)
 app.use('/api/upload', uploadRoute)
+app.use('/api/country', countryRoute)
 
 
 // Setup socket.io connection
