@@ -18,8 +18,8 @@ router.post('/deleteAccount', AdminProtect, AdminRole(['Admin']), controllers.de
 router.post('/signout', controllers.signout)
 
 //GET ROUTES
-router.get('/getAllAdmin', AdminProtect, controllers.getAllAdmin) //auth
-router.get('/getAdmin', AdminProtect, controllers.getAdmin) //auth
+router.get('/getAllAdmin', AdminProtect, AdminRole(['Admin']), controllers.getAllAdmin) //auth
+router.get('/getAdmin/:_id', AdminProtect, AdminRole(['Admin']), controllers.getAdmin) //auth
 router.get('/getSiteSettings', AdminProtect, AdminRole(['Admin']), controllers.getSiteSettings)
 
 export default router

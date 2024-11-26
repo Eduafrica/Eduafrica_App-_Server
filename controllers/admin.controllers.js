@@ -82,6 +82,7 @@ export async function createAdmin(req, res) {
 
 //APPROVE ADMIN
 export async function approveAdmin(req, res) {
+    console.log('DTTA',req.body)
     const { id, role } = req.body
     try {
         const getAdmin = await AdminModel.findOne({ _id: id })
@@ -478,7 +479,7 @@ export async function deleteAccount(req, res) {
 //GET ALL ADMIN
 export async function getAllAdmin(req, res) {
     try {
-        const getAllUsers = await AdminModel.find()
+        const getAllUsers = await AdminModel.find().select('-password')
 
         res.status(200).json({ success: true, data: getAllUsers })
     } catch (error) {
@@ -489,12 +490,12 @@ export async function getAllAdmin(req, res) {
 
 //GET AN ADMIN
 export async function getAdmin(req, res) {
-    const { _id } = req.body
+    const { _id } = req.params
     try {
         if(!_id){
             return res.status(400).json({ success: false, data: 'Provide an ID' })
         }
-        const getUser = await AdminModel.findOne({ _id: _id })
+        const getUser = await AdminModel.findOne({ _id: _id }).select('-password')
         if(!getUser){
             return res.status(404).json({ success: false, data: 'No user with this ID found' })
         }

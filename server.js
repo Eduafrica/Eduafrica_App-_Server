@@ -50,6 +50,8 @@ const io = new Server(server, {
 app.use(cookieParser());
 app.use(express.json());
 
+app.use(express.urlencoded({ extended: true })); // Parses URL-encoded data
+
 // Set up bodyParser to parse incoming requests
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

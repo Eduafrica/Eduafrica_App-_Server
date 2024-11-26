@@ -17,12 +17,14 @@ const mailGenerator = new Mailgen({
 
 //REGISTER INSTRUCTOR
 export async function registerUser(req, res) {
+    console.log('object', req.body)
     const { name, displayName, password, confirmPassword, phoneNumber, email, preferredLanguage, country } = req.body
-    if (!email) {
-        return res.status(400).json({ success: false, data: 'Please your email address' });
+    console.log('objectdd', email)
+    if(!email){
+        return res.status(400).json({ success: false, data: 'Please provide your email address' });
     }
     if (!displayName) {
-        return res.status(400).json({ success: false, data: 'Please your display name' });
+        return res.status(400).json({ success: false, data: 'Please provide your display name' });
     }
     if (!password) {
         return res.status(400).json({ success: false, data: 'Please provide a password' });
