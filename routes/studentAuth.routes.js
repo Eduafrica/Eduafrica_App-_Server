@@ -22,7 +22,7 @@ router.get('/getStudentAllCourse', Protect, controllers.getStudentAllCourse )
 
 router.get('/getAllStudent', AdminProtect, controllers.getAllStudent)
 router.get('/getStudent/:_id', AdminProtect, controllers.getStudent)
-
+router.get('/getStudentStats/:stats', AdminProtect, controllers.getStudentStats)
 //PUT ROUTES
 
 export default router

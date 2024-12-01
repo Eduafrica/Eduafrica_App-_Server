@@ -8,12 +8,20 @@ const CmsSchema = new mongoose.Schema({
         type: String
     },
     type: {
-        type: String
-    },
+        type: String,
+        enum: [ 'pushnotification', 'promotionalmail' ]
+    },//push notification or promotional mail
     status: {
+        type: String,
+        enum: [ 'Draft', 'Scheduled', 'Published' ]
+    }, //draft, published, scheduled
+    image: {
         type: String
     },
-    image: {
+    url: {
+        type: String
+    },
+    caption: {
         type: String
     },
     scheduled: {
@@ -23,8 +31,23 @@ const CmsSchema = new mongoose.Schema({
     users: {
         type: Array
     },//users ID
+    accountType: {
+        type: String
+    },
     allUsers: {
         type: Boolean,
+        default: true
+    },
+    scheduledDate: [{
+        day: { type: String, },
+        time: { type: String, }, 
+        date: { type: String, }, 
+    }],
+    author: {
+        type: String
+    },
+    authorID: {
+        type: String
     }
 },
 { timestamps: true }

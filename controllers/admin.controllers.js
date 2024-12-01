@@ -359,6 +359,31 @@ export async function editProfile(req, res) {
     }
 }
 
+//ADMIN UPDATE STAFF PROFILE
+export async function adminEditStaff(req, res) {
+    const { id, role, } = req.body
+    try {
+        if(req.body.staffID){
+            return res.status(403).json({ success: false, data: 'Staff ID cannot be updated' })
+        }
+        const updateUser = await AdminModel.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    role
+                }
+            },
+            { new: true }
+        )
+        //console.log(updateUser)
+        const { password, resetPasswordExpire, resetPasswordToken, _id, ...userData } = updateUser._doc
+        res.status(200).json({ success: true, msg: 'Profile Updated Successful', data: {success: true, data: userData } })
+    } catch (error) {
+        console.log('UNABLE TO UPDATE ADMIN USER PROFILE', error)
+        res.status(500).json({ success: false, data: 'Unable to update profile' })
+    }
+}
+
 //UPDATE PASSWORD
 export async function updatePassword(req, res){
     const { currentPassword, password, confirmPassword } = req.body

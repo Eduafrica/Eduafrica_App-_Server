@@ -11,6 +11,7 @@ router.post('/login', controllers.login)
 router.post('/forgotPassword', controllers.forgotPassword)
 router.post('/resetPassword/:resetToken', controllers.resetPassword)
 router.post('/editProfile', AdminProtect, controllers.editProfile) //auth
+router.post('/adminEditStaff', AdminProtect, AdminRole(['Admin']), controllers.adminEditStaff) //auth
 router.post('/updatePassword', AdminProtect, controllers.updatePassword) //auth
 router.post('/blockAccount', AdminProtect, AdminRole(['Admin']), controllers.blockAccount) //auth
 router.post('/unBlockAccount', AdminProtect, AdminRole(['Admin']), controllers.unBlockAccount) //auth

@@ -605,3 +605,142 @@ export async function getAInstructorCourse(req, res) {
         res.status(500).json({ success: false, data: 'Unable to get the course of an instructor' });
     }
 }
+
+//GET COURSE STATS
+export async function getCourseStats(req, res) {
+    const { stats } = req.params;
+    console.log('STATSUS', stats)
+    if(!stats){
+        return
+    }
+
+    const getFilterDates = (value) => {
+        const today = new Date();
+        let startDate, endDate, previousStartDate, previousEndDate;
+
+        switch (value) {
+            case 'today':
+                endDate = new Date(today);
+                startDate = new Date(today.setDate(today.getDate() - 1));
+                previousEndDate = new Date(startDate);
+                previousStartDate = new Date(previousEndDate.setDate(previousEndDate.getDate() - 1));
+                break;
+
+            case '7days':
+                endDate = new Date();
+                startDate = new Date(today.setDate(today.getDate() - 7));
+                previousEndDate = new Date(startDate);
+                previousStartDate = new Date(previousEndDate.setDate(previousEndDate.getDate() - 7));
+                break;
+
+            case '30days':
+                endDate = new Date();
+                startDate = new Date(today.setDate(today.getDate() - 30));
+                previousEndDate = new Date(startDate);
+                previousStartDate = new Date(previousEndDate.setDate(previousEndDate.getDate() - 30));
+                break;
+
+            case '1year':
+                endDate = new Date();
+                startDate = new Date(today.setFullYear(today.getFullYear() - 1));
+                previousEndDate = new Date(startDate);
+                previousStartDate = new Date(previousEndDate.setFullYear(previousEndDate.getFullYear() - 1));
+                break;
+
+            case 'alltime':
+                startDate = new Date(0); // Unix epoch start
+                endDate = new Date();
+                previousStartDate = null;
+                previousEndDate = null;
+                break;
+
+            default:
+                throw new Error('Invalid stats value');
+        }
+
+        return { startDate, endDate, previousStartDate, previousEndDate };
+    };
+
+    const calculatePercentageChange = (current, previous) => {
+        if (previous === 0) return { change: 100, percentage: '+' }; // Handle division by zero
+        const change = ((current - previous) / previous) * 100;
+        return {
+            change: parseFloat(change.toFixed(2)),
+            percentage: change >= 0 ? '+' : '-',
+        };
+    };
+
+    try {
+        const { startDate, endDate, previousStartDate, previousEndDate } = getFilterDates(stats);
+
+        const selectedPeriodData = await CourseModel.aggregate([
+            { $match: { createdAt: { $gte: startDate, $lte: endDate } } },
+            {
+                $group: {
+                    _id: null,
+                    totalStudents: { $sum: 1 },
+                    activeStudents: { $sum: { $cond: [{ $eq: ["$approved", 'Approved'] }, 1, 0] } },
+                    inactiveStudents: { $sum: { $cond: [{ $eq: ["$approved", 'Pending'] }, 1, 0] } },
+                    blacklistStudents: { $sum: { $cond: [{ $eq: ["$blocked", true] }, 1, 0] } },
+                },
+            },
+        ]);
+
+        let previousPeriodData = [];
+        if (previousStartDate && previousEndDate) {
+            previousPeriodData = await CourseModel.aggregate([
+                { $match: { createdAt: { $gte: previousStartDate, $lte: previousEndDate } } },
+                {
+                    $group: {
+                        _id: null,
+                        totalStudents: { $sum: 1 },
+                        activeStudents: { $sum: { $cond: [{ $eq: ["$approved", 'Approved'] }, 1, 0] } },
+                        inactiveStudents: { $sum: { $cond: [{ $eq: ["$approved", 'Pending'] }, 1, 0] } },
+                        blacklistStudents: { $sum: { $cond: [{ $eq: ["$isBlocked", true] }, 1, 0] } },
+                    },
+                },
+            ]);
+        }
+
+        // Ensure data structure
+        const currentData = selectedPeriodData[0] || { totalStudents: 0, activeStudents: 0, inactiveStudents: 0, blacklistStudents: 0 };
+        const previousData = previousPeriodData[0] || { totalStudents: 0, activeStudents: 0, inactiveStudents: 0, blacklistStudents: 0 };
+
+        // Calculate percentage changes with indicators
+        const statsComparison = [
+            {
+                current: currentData.totalStudents,
+                previous: previousData.totalStudents,
+                id: 'totalcourse',
+                name: 'Total Course',
+                ...calculatePercentageChange(currentData.totalStudents, previousData.totalStudents),
+            },
+            {
+                current: currentData.activeStudents,
+                previous: previousData.activeStudents,
+                id: 'totalactivecourse',
+                name: 'Total Active Course',
+                ...calculatePercentageChange(currentData.activeStudents, previousData.activeStudents),
+            },
+            {
+                current: currentData.inactiveStudents,
+                previous: previousData.inactiveStudents,
+                id: 'totalinactivecourse',
+                name: 'Total Inactive Course',
+                ...calculatePercentageChange(currentData.inactiveStudents, previousData.inactiveStudents),
+            },
+            {
+                current: currentData.blacklistStudents,
+                previous: previousData.blacklistStudents,
+                id: 'totalblacklistcourse',
+                name: 'Total Blacklist Course',
+                ...calculatePercentageChange(currentData.blacklistStudents, previousData.blacklistStudents),
+            },
+        ];
+
+        res.status(200).json({ success: true, data: statsComparison });
+    } catch (error) {
+        console.error('UNABLE TO GET COURSE STATS', error);
+        res.status(500).json({ success: false, data: 'Unable to get courses stats' });
+    }
+}

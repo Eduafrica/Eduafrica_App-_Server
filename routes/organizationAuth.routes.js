@@ -14,6 +14,8 @@ router.post('/toggleblock', AdminProtect, controllers.toggleblock)
 //GET ROUTES
 router.get('/getAllOrganizations', AdminProtect, controllers.getAllOrganizations)
 router.get('/getOrganization/:_id', AdminProtect, controllers.getOrganization)
+router.get('/getOrganizationStats/:stats', AdminProtect, controllers.getOrganizationStats)
+
 
 
 //PUT ROUTES

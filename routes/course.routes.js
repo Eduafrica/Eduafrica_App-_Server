@@ -35,6 +35,8 @@ router.get('/getCourseByParams/:param', controllers.getCourseByParams)
 
 router.get('/getInstructorCourses/:_id', InstructorsOrAdminProtect, controllers.getInstructorCourses)
 router.get('/getAInstructorCourse/:_id', InstructorsOrAdminProtect, controllers.getAInstructorCourse)
+router.get('/getCourseStats/:stats', AdminProtect, controllers.getCourseStats)
+
 
 
 
