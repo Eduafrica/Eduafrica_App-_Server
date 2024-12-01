@@ -63,6 +63,10 @@ export async function registerUser(req, res) {
         if (existingEmail) {
             return res.status(400).json({ success: false, data: 'Email already exists. Please use another email' });
         }
+        const existingPhoneNumber = await InstructorModel.findOne({ phoneNumber });
+        if (existingPhoneNumber) {
+            return res.status(400).json({ success: false, data: 'Phone Number already exists. Please use another email' });
+        }
 
         const generatedInstructorCode = await generateUniqueCode(6)
         console.log('INSTRUCTOR CODE>>', `EA${generatedInstructorCode}`)
