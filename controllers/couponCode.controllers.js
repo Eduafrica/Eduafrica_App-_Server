@@ -1,3 +1,4 @@
+import { generateUniqueCode } from "../middleware/utils.js"
 import CouponCodeModel from "../models/CouponCode.js"
 import CourseModel from "../models/Course.js"
 
