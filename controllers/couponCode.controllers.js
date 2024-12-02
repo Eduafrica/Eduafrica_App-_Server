@@ -40,6 +40,9 @@ export async function createCoupon(req, res) {
 //UPDATE COUPON CODE
 export async function updateCoupon(req, res) {
     const { _id, percentageOff, text, maxNumber, active } = req.body
+    if(req.body.code){
+        return res.status(403).json({ success: false, data: 'Coupon Code cannot be edited' })
+    }
     try {
         const getcouponCode = await CouponCodeModel.findById({ _id: _id })
         if(!getcouponCode){
@@ -83,6 +86,7 @@ export async function deleteCouponCode(req, res) {
 //GET ALL COUPON CODE OF A COURSE
 export async function getCoupons(req, res) {
     const { id } = req.params
+    console.log('course coupons', id)
     try {
         const couponCodes = await CouponCodeModel.find({ courseId: id })
 
@@ -95,9 +99,9 @@ export async function getCoupons(req, res) {
 
 //GET A COUPON CODE
 export async function getCouponCode(req, res) {
-    const { id } = req.params
+    const { _id } = req.params
     try {
-        const couponCode = await CouponCodeModel.findById({ _id: id })
+        const couponCode = await CouponCodeModel.findById({ _id: _id })
 
         res.status(200).json({ success: true, data: couponCode })
     } catch (error) {

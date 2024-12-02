@@ -15,7 +15,7 @@ import instructorRoute from './routes/instructorAuth.routes.js';
 import organizationRoute from './routes/organizationAuth.routes.js';
 import aiChatRoute from './routes/aichat.routes.js';
 import courseRoute from './routes/course.routes.js';
-import courseContentRoute from './routes/courseContent.js';
+import courseContentRoute from './routes/courseContent.routes.js';
 import adminRoute from './routes/admin.routes.js';
 import orderRoute from './routes/orders.routes.js';
 import uploadRoute from './routes/upload.routes.js'; //TO upload course files

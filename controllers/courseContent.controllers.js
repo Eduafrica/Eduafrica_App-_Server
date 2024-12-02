@@ -4,8 +4,12 @@ import CourseContentModel from "../models/CourseContent.js"
 //UPLOAD A COURSE CONTENT
 export async function uploadCourseContent(req, res) {
     const { courseID, sectionTitle, overview, courseNote, assestLink, assestType, assignment } = req.body
-    console.log('object', req.body)
+    const { _id } = req.user
+    //console.log('object', req.body)
     try {
+        if(!courseID){
+            return res.status(400).json({ success: false, data: 'Course ID is required' })
+        }
         if(!sectionTitle){
             return res.status(400).json({ success: false, data: 'Section Title is required' })
         }
@@ -15,10 +19,20 @@ export async function uploadCourseContent(req, res) {
         if(!courseNote){
             return res.status(400).json({ success: false, data: 'Section Course note is required' })
         }
-
+        if(assestLink && !assestType){
+            return res.status(400).json({ success: false, data: 'Provide a corresponding assest type for media assest' })
+        }
+        if(assestLink && assestType !== 'video' || assestType !== 'audio' || assestType !== 'image' || assestType !== 'pdf'){
+            return res.status(400).json({ success: false, data: "Invalid assest Type, type should be either: 'video', 'audio', 'image', 'pdf'"})
+        }
         const getCourse = await CourseModel.findOne({ slugCode: courseID })
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'No Course with this ID found' })
+        }
+
+        //ONLY ALLOW OWNER OF COURSE TO UPLOAD THEIR COURSE
+        if(_id.toString() !== getCourse.instructorId.toString() ){
+            return res.status(403).json({ success: false, data: 'Not Authorized: Access Denied' })
         }
 
         const getCourseContent = await CourseContentModel.findOne({ slugCode: courseID })
@@ -52,10 +66,65 @@ export async function uploadCourseContent(req, res) {
     }
 }
 
+// EDIT COURSE CONTENT
+export async function updateCourseContent(req, res) {
+    const { courseID, chapterId, sectionTitle, overview, courseNote, assestLink, assestType, assignment } = req.body;
+    const { _id } = req.user;
+    if(assestLink && !assestType){
+        return res.status(400).json({ success: false, data: 'Provide a corresponding assest type for media assest' })
+    }
+    if(assestLink && assestType !== 'video' || assestType !== 'audio' || assestType !== 'image' || assestType !== 'pdf'){
+        return res.status(400).json({ success: false, data: "Invalid assest Type, type should be either: 'video', 'audio', 'image', 'pdf'"})
+    }
+    try {
+        // Fetch the course
+        const getCourse = await CourseModel.findOne({ slugCode: courseID });
+        if (!getCourse) {
+            return res.status(404).json({ success: false, data: 'No course with this ID found' });
+        }
+
+        // Only allow the owner of the course to upload their course
+        if (!_id.equals(getCourse.instructorId)) {
+            return res.status(403).json({ success: false, data: 'Not Authorized: Access Denied' });
+        }
+
+        // Check if the course content exists
+        const getCourseContent = await CourseContentModel.findOne({ slugCode: courseID });
+        if (!getCourseContent) {
+            return res.status(404).json({ success: false, data: 'Course content with this ID does not exist' });
+        }
+
+        // Update the specific section using chapterId (_id of the section)
+        const updatedContent = await CourseContentModel.findOneAndUpdate(
+            { slugCode: courseID, "sections._id": chapterId }, // Match the course and specific section
+            {
+                $set: {
+                    "sections.$.sectionTitle": sectionTitle,
+                    "sections.$.overview": overview,
+                    "sections.$.courseNote": courseNote,
+                    "sections.$.assestLink": assestLink,
+                    "sections.$.assestType": assestType,
+                    "sections.$.assignment": assignment,
+                },
+            },
+            { new: true } 
+        );
+
+        if (!updatedContent) {
+            return res.status(404).json({ success: false, data: 'Section with this ID not found' });
+        }
+
+        return res.status(200).json({ success: true, data: updatedContent });
+    } catch (error) {
+        console.error('UNABLE TO UPDATE COURSE CONTENT', error);
+        res.status(500).json({ success: false, data: 'Unable to update course content' });
+    }
+}
+
 //FETCH A COURSE FOR ADMIN
 export async function getCourseContentForAdmin(req, res) {
     const { id } = req.params
-    console.log('course content', id)
+    //console.log('course content', id)
     try {
         if(!id){
             return res.status(400).json({ success: false, data: 'Provide a course ID' })
@@ -67,11 +136,41 @@ export async function getCourseContentForAdmin(req, res) {
             return res.status(404).json({ success: false, msg: 'This Course does not have a course content' })
         }
 
-        const contents = getCourseContent.sections
+        const contents = getCourseContent
 
         res.status(200).json({ success: true, data: contents })
     } catch (error) {
         console.log('UNABLE TO GET COURSE CONTENT FOR ADMIN USER', error)
         res.status(500).json({ success: false, data: 'Unable to get course content for admin user' })
+    }
+}
+
+//FETCH A COURSE FOR COURSE OWNER(INSTRUCTOR || ORGANIZATION)
+export async function getCourseContentForInstructor(req, res) {
+    const { id } = req.params
+    const { _id } = req.user
+    //console.log('course content', id)
+    try {
+        if(!id){
+            return res.status(400).json({ success: false, data: 'Provide a course ID' })
+        }
+
+        const getCourseContent = await CourseContentModel.findOne({ courseId: id })
+
+        if(!getCourseContent){
+            return res.status(404).json({ success: false, msg: 'This Course does not have a course content' })
+        }
+
+        const getCourse = await CourseModel.findOne({ _id: getCourseContent.courseId })
+        if(_id.toString() !== getCourse.instructorId.toString() ){
+            return res.status(403).json({ success: false, data: 'Not Authorized: Access Denied' })
+        }
+
+        const contents = getCourseContent
+
+        res.status(200).json({ success: true, data: contents })
+    } catch (error) {
+        console.log('UNABLE TO GET COURSE CONTENT FOR COURSE OWNER ', error)
+        res.status(500).json({ success: false, data: 'Unable to get course content' })
     }
 }

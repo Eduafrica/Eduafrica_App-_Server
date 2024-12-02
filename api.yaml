@@ -265,6 +265,38 @@ paths:
         500: 
           description: Server error
 
+  /api/instructor/verifyInstructorDetails:
+    post:
+      summary: Verify Instructor signup details
+      description: verify instructors signup details
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+              - confirmPassword
+              - phoneNumber
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+              confirmPassword:
+                type: string
+              phoneNumber:
+                type: string
+      responses:
+        200: 
+          description: details verified successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/instructor/register:
     post:
       summary: Register new instructor
@@ -386,29 +418,33 @@ paths:
         500: 
           description: Server error
 
-  /api/student/updateProfile:
+  /api/organization/verifyOrganizationDetails:
     post:
-      summary: Student update account profile
-      description: Student update account profile
+      summary: Verify organization signup details
+      description: verify organization signup details
       parameters:
         - name: body
           in: body
+          required: true
           schema:
             type: object
+            required:
+              - email
+              - password
+              - confirmPassword
+              - phoneNumber
             properties:
-              name:
+              email:
                 type: string
-              displayName:
+              password:
                 type: string
-              country:
+              confirmPassword:
                 type: string
-              preferredLanguage:
+              phoneNumber:
                 type: string
-              allowNotifications:
-                type: boolean
       responses:
         200: 
-          description: Card deleted successfully
+          description: details verified successful
         400:
           description: User error
         500: 
@@ -633,6 +669,82 @@ paths:
         500: 
           description: Server error
 
+  /api/courseContent/uploadCourseContent:
+    post:
+      summary: Endpoint to create new course content(chapter) by instructors or organization
+      description: takes in courseID (slugCode form course)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - courseID
+              - sectionTitle 
+              - overview 
+              - courseNote 
+            properties:
+              courseID:
+                type: string (required)
+              sectionTitle:
+                type: string (required)
+              overview:
+                type: string (optional)
+              courseNote:
+                type: string (required)
+              assestLink:
+                type: string (optional)
+              assestType:
+                type: string (optional)
+              assignment:
+                type: string (optional)
+      responses:
+        201: 
+          description: Course content created
+        400:
+          description: User error
+        500: 
+          description: Server error
+  
+  /api/courseContent/updateCourseContent:
+    post:
+      summary: Endpoint to update course content(chapter) by instructors or organization
+      description: takes in courseID (slugCode form course) and chapterId (_id) of specific chapter
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - courseID
+              - chapterId
+            properties:
+              courseID:
+                type: string (required)
+              chapterId:
+                type: string (required)
+              sectionTitle:
+                type: string (optional)
+              overview:
+                type: string (optional)
+              courseNote:
+                type: string (optional)
+              assestLink:
+                type: string (optional)
+              assestType:
+                type: string (optional)
+              assignment:
+                type: string (optional)
+      responses:
+        201: 
+          description: Course content created
+        400:
+          description: User error
+        500: 
+          description: Server error
+  
   /api/course/requestCourseApproval:
     post:
       summary: Endpoint to request for course approval by instructors
@@ -708,6 +820,18 @@ paths:
     get:
       summary: Fetch single course by Id from database
       description: Fetch single course by Id from database
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/course/getCourseByCouponCode/:couponCode:
+    get:
+      summary: Fetch course with coupon code
+      description: Fetch course with coupon code inputted by student. coupon code is required
       responses:
         200: 
           description: successful 

@@ -29,7 +29,7 @@ const CourseContentSchema = new mongoose.Schema({
             },
             assestType: {
                 type: String,
-                //enum: ['video', 'audio', 'image', 'pdf']
+                enum: ['video', 'audio', 'image', 'pdf']
             },
             assignment: {
                 type: String,

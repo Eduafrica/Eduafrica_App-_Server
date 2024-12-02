@@ -15,6 +15,53 @@ const mailGenerator = new Mailgen({
     }
 })
 
+export async function verifyInstructorDetails(req, res) {
+    const { name, displayName, password, confirmPassword, phoneNumber, email } = req.body
+    if(!email){
+        return res.status(400).json({ success: false, data: 'Please provide your email address' });
+    }
+    if (!password) {
+        return res.status(400).json({ success: false, data: 'Please provide a password' });
+    }
+    if (!confirmPassword) {
+        return res.status(400).json({ success: false, data: 'Confirm Password is required' });
+    }
+    if (!phoneNumber) {
+        return res.status(400).json({ success: false, data: 'Phone Number is required' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if(!emailRegex.test(email)){
+        return res.status(401).json({ success: false, data: 'Invalid Email Address' })
+    }
+
+    const specialChars = /[!@#$%^&*()_+{}[\]\\|;:'",.<>?]/;
+    if (!specialChars.test(password)) {
+        return res.status(400).json({ success: false, data: 'Passwords must contain at least one special character' });
+    }
+
+    if (password !== confirmPassword) {
+        return res.status(400).json({ success: false, data: 'Password and Confirm password do not match' });
+    }
+    try {
+        const existingEmail = await InstructorModel.findOne({ email });
+        if (existingEmail) {
+            return res.status(400).json({ success: false, data: 'Email already exists. Please use another email' });
+        }
+        const existingPhoneNumber = await InstructorModel.findOne({ phoneNumber });
+        if (existingPhoneNumber) {
+            return res.status(400).json({ success: false, data: 'Phone Number already exists. Please use another email' });
+        }
+
+        res.status(200).json({ success: true, data: 'details verified successful' })
+    } catch (error) {
+        console.log('UNABLE TO VERIFY INSTRUCTORS DETAILS', error)
+        res.status(500).json({ success: false, data: 'Unable to verify details' })
+    }
+}
+
 //REGISTER INSTRUCTOR
 export async function registerUser(req, res) {
     console.log('object', req.body)

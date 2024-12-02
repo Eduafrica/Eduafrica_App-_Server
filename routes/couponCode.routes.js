@@ -12,8 +12,8 @@ router.post('/deleteCouponCode', AdminProtect, AdminRole(['Admin']), controllers
 
 
 //GET ROUTES
-router.post('/getCoupons/:id', controllers.getCoupons)
-router.post('/getCouponCode/:id', controllers.getCouponCode)
+router.get('/getCoupons/:id', controllers.getCoupons)//all coupon code of a course
+router.get('/getCouponCode/:_id', controllers.getCouponCode) //specific coupon code with _id
 
 
 //PUT ROUTES

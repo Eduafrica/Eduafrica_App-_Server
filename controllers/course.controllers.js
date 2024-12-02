@@ -1,4 +1,5 @@
 import { calculateAverageCourseRating, generateUniqueCode } from "../middleware/utils.js"
+import CouponCodeModel from "../models/CouponCode.js"
 import CourseModel from "../models/Course.js"
 import CourseCategoryModel from "../models/CourseCategories.js"
 import CourseContentModel from "../models/CourseContent.js"
@@ -308,6 +309,36 @@ export async function getCourseByParams(req, res) {
         
     } catch (error) {
         
+    }
+}
+
+//GET COURSE BY COUPON CODE
+export async function getCourseByCouponCode(req, res) {
+    const { couponCode } = req.params
+    if(!couponCode){
+        return res.status(400).json({ success: false, data: 'Provide a coupon code' })
+    }
+    try {
+        const getCode = await CouponCodeModel.findOne({ code: couponCode })
+        if(!getCode){
+            return res.status(404).json({ success: false, data: 'No Course with this ID found' })
+        }
+
+        const getCourse = await CourseModel.findOne({ slugCode: getCode?.courseSlug })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course does not exist' })
+        }
+        if(getCourse.approved !== 'Approved'){
+            return res.status(404).json({ success: false, data: 'Course is not active' })
+        }
+        if(getCourse.isBlocked){
+            return res.status(404).json({ success: false, data: 'Course has been Blocked' })
+        }
+
+        res.status(200).json({ success: true, data: getCourse })
+    } catch (error) {
+        console.log('UNABLE TO GET COURSE', error)
+        res.status(500).json({ success: false, data: 'Unable to get course' })
     }
 }
 
