@@ -29,6 +29,9 @@ export async function verifyOrganizationDetails(req, res) {
     if (!phoneNumber) {
         return res.status(400).json({ success: false, data: 'Phone Number is required' });
     }
+    if (!organisationName) {
+        return res.status(400).json({ success: false, data: 'Organisation Name is required' });
+    }
     if (password.length < 6) {
         return res.status(400).json({ success: false, data: 'Passwords must be at least 6 characters long' });
     }
@@ -54,7 +57,7 @@ export async function verifyOrganizationDetails(req, res) {
         if (existingPhoneNumber) {
             return res.status(400).json({ success: false, data: 'Phone Number already exists. Please use another email' });
         }
-        const existingOrganizationName = await organizationModel.findOne({ organisationName: organisationName.trim() });
+        const existingOrganizationName = await organizationModel.findOne({ organisationName: typeof organisationName === 'string' ? organisationName.trim() : organisationName });
         if (existingOrganizationName) {
             return res.status(400).json({ success: false, data: 'Organization with this name already exist. Please use another organization name' });
         }
@@ -131,8 +134,24 @@ export async function registerUser(req, res) {
         console.log('ORGANIZATION CODE>>', `EA${generatedInstructorCode}`)
 
 
-        const user = await organizationModel.create({ name, password, confirmPassword, email, organisationName: organisationName.trim(), organisationUrl: organisationUrl.trim(), displayName, phoneNumber, whatsappNumber, allowNotifications, preferredLanguage, country, organisationID: `EA${generatedInstructorCode}` });
+        const user = await organizationModel.create({
+            name,
+            password,
+            confirmPassword,
+            email,
+            organisationName: typeof organisationName === 'string' ? organisationName.trim() : organisationName,
+            organisationUrl: typeof organisationUrl === 'string' ? organisationUrl.trim() : organisationUrl,
+            displayName,
+            phoneNumber,
+            whatsappNumber,
+            allowNotifications,
+            preferredLanguage,
+            country,
+            organisationID: `EA${generatedInstructorCode}`
+        });
+        
         console.log('USER CREATED');
+        
 
         const otpCode = await generateOtp(user._id, 'organization')
         console.log('OTP', otpCode)

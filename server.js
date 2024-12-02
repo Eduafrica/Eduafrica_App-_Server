@@ -22,7 +22,7 @@ import uploadRoute from './routes/upload.routes.js'; //TO upload course files
 import countryRoute from './routes/countries.routes.js';
 import cmsRoute from './routes/cms.routes.js';
 import couponRoute from './routes/couponCode.routes.js';
-
+import pushNotificationRoute from './routes/pushNotification.routes.js';
 
 
 // CORS setup
@@ -102,6 +102,8 @@ app.use('/api/upload', uploadRoute)
 app.use('/api/country', countryRoute)
 app.use('/api/cms', cmsRoute)
 app.use('/api/coupon', couponRoute)
+app.use('/api/pushNotification', pushNotificationRoute)
+
 
 
 
