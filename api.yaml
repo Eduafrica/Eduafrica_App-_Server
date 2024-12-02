@@ -433,6 +433,7 @@ paths:
               - password
               - confirmPassword
               - phoneNumber
+              - organisationName
             properties:
               email:
                 type: string
@@ -441,6 +442,8 @@ paths:
               confirmPassword:
                 type: string
               phoneNumber:
+                type: string
+              organisationName:
                 type: string
       responses:
         200: 

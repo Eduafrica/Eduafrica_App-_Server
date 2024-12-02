@@ -16,7 +16,7 @@ const mailGenerator = new Mailgen({
 
 //VERIFY ORGANIZATION DETAILS
 export async function verifyOrganizationDetails(req, res) {
-    const { name, displayName, password, confirmPassword, phoneNumber, email } = req.body
+    const { name, displayName, password, confirmPassword, phoneNumber, email, organisationName } = req.body
     if(!email){
         return res.status(400).json({ success: false, data: 'Please provide your email address' });
     }
@@ -53,6 +53,10 @@ export async function verifyOrganizationDetails(req, res) {
         const existingPhoneNumber = await organizationModel.findOne({ phoneNumber });
         if (existingPhoneNumber) {
             return res.status(400).json({ success: false, data: 'Phone Number already exists. Please use another email' });
+        }
+        const existingOrganizationName = await organizationModel.findOne({ organisationName: organisationName.trim() });
+        if (existingOrganizationName) {
+            return res.status(400).json({ success: false, data: 'Organization with this name already exist. Please use another organization name' });
         }
 
         res.status(200).json({ success: true, data: 'details verified successful' })

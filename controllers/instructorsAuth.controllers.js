@@ -65,7 +65,7 @@ export async function verifyInstructorDetails(req, res) {
 //REGISTER INSTRUCTOR
 export async function registerUser(req, res) {
     console.log('object', req.body)
-    const { name, displayName, password, confirmPassword, phoneNumber, email, preferredLanguage, country } = req.body
+    const { name, displayName, password, confirmPassword, phoneNumber, email, preferredLanguage, country, allowNotifications } = req.body
     console.log('objectdd', email)
     if(!email){
         return res.status(400).json({ success: false, data: 'Please provide your email address' });
@@ -119,7 +119,7 @@ export async function registerUser(req, res) {
         console.log('INSTRUCTOR CODE>>', `EA${generatedInstructorCode}`)
 
         const user = await InstructorModel.create({ 
-            name, displayName, password, confirmPassword, email, preferredLanguage, phoneNumber, country, instructorID: `EA${generatedInstructorCode}`
+            name, displayName, password, confirmPassword, email, preferredLanguage, phoneNumber, country, allowNotifications, instructorID: `EA${generatedInstructorCode}`
         });
         console.log('USER CREATED');
 
