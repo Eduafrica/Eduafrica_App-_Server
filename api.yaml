@@ -1049,3 +1049,32 @@ paths:
           description: User error
         500: 
           description: Server error
+
+  /api/pushNotification/saveSubscription:
+    post:
+      summary: Subscribe to push notification by user
+      description: Subscribe to push notification by user, requires email, accountType, and data as an object. data represent device information
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - accountType
+              - data
+            properties:
+              email:
+                type: string
+              accountType:
+                type: string
+              data:
+                type: object
+      responses:
+        201: 
+          description: Subscription saved! 
+        400:
+          description: User error
+        500: 
+          description: Server error
