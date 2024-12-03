@@ -174,7 +174,7 @@ export async function login(req, res) {
         if(!user.verified){
             let otpExist = await OtpModel.findOne({ userId: user._id})
             if(!otpExist){
-                const otpCode = await generateOtp(user._id)
+                const otpCode = await generateOtp(user._id, 'instructor')
                 console.log('OTP CODE', otpCode)
 
                 try {
