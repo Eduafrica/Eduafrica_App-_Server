@@ -216,7 +216,6 @@ export async function login(req, res) {
                         instructions: 'Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
                         outro: `If you did not Sign Up, please ignore this email and report.
                         `,
-                        verifyUrl: verifyUrl,
                         otp: otpCode,
                     });
         
