@@ -748,6 +748,81 @@ paths:
         500: 
           description: Server error
   
+  /api/upload/initiateUpload:
+    post:
+      summary: Endpoint to initiate a file upload by the user
+      description: Endpoint to initiate a file upload by the user returns uploadId on success
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - fileName
+            properties:
+              fileName:
+                type: string
+      responses:
+        201: 
+          description: returns uploadId
+        400:
+          description: User error
+        500: 
+          description: Server error        
+       
+  /api/upload/uploadFile:
+    post:
+      summary: Endpoint to Receive chunk and write it to S3 bucket
+      description: Endpoint to Receive chunk and write it to S3 bucket
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - fileName
+              - index
+            properties:
+              fileName:
+                type: string
+              index:
+                type: string
+      responses:
+        201: 
+          description: returns success true
+        400:
+          description: User error
+        500: 
+          description: Server error        
+   
+  /api/upload/completeUpload:
+    post:
+      summary: file upload complete
+      description: Final endpoint to multipart upload has fileName and uploadId as query returns media assest url as data
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: object
+            required:
+              - fileName
+              - uploadId
+            properties:
+              fileName:
+                type: string
+              uploadId:
+                type: string
+      responses:
+        201: 
+          description: returns success file url
+        400:
+          description: User error
+        500: 
+          description: Server error        
+            
   /api/course/requestCourseApproval:
     post:
       summary: Endpoint to request for course approval by instructors

@@ -4,10 +4,10 @@ import { AdminProtect, Protect, UserRole } from '../middleware/auth.js'
 
 const router = express.Router()
 
-//router.post('/uploadCourseContent', Protect, UserRole(['instructor', 'organization']), controllers.uploadCourseContent )
-router.post('/uploadCourseContent', controllers.uploadCourseContent )
-//router.post('/updateCourseContent', Protect, UserRole(['instructor', 'organization']), controllers.updateCourseContent )
-router.post('/updateCourseContent', controllers.updateCourseContent )
+router.post('/uploadCourseContent', Protect, UserRole(['instructor', 'organization']), controllers.uploadCourseContent )
+//router.post('/uploadCourseContent', controllers.uploadCourseContent )
+router.post('/updateCourseContent', Protect, UserRole(['instructor', 'organization']), controllers.updateCourseContent )
+//router.post('/updateCourseContent', controllers.updateCourseContent )
 
 
 //GET ROUTES
