@@ -55,7 +55,7 @@ export async function verifyOrganizationDetails(req, res) {
         }
         const existingPhoneNumber = await organizationModel.findOne({ phoneNumber });
         if (existingPhoneNumber) {
-            return res.status(400).json({ success: false, data: 'Phone Number already exists. Please use another email' });
+            return res.status(400).json({ success: false, data: 'Phone Number already exists. Please use another phone number' });
         }
         const existingOrganizationName = await organizationModel.findOne({ organisationName: typeof organisationName === 'string' ? organisationName.trim() : organisationName });
         if (existingOrganizationName) {
