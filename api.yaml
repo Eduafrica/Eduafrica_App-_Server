@@ -22,6 +22,38 @@ paths:
         200:
           description: Success
 
+  /api/student/verifyStudentDetails:
+    post:
+      summary: Verify Student signup details
+      description: verify student signup details
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+              - password
+              - confirmPassword
+              - phoneNumber
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+              confirmPassword:
+                type: string
+              phoneNumber:
+                type: string
+      responses:
+        200: 
+          description: details verified successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/student/register:
     post:
       summary: Register new student

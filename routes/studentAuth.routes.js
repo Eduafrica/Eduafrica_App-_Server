@@ -4,6 +4,7 @@ import { AdminProtect, Protect } from '../middleware/auth.js'
 
 const router = express.Router()
 
+router.post('/verifyStudentDetails', controllers.verifyStudentDetails )
 router.post('/register', controllers.registerUser )
 router.post('/login', controllers.login )
 router.post('/forgotPassword', controllers.forgotPassword )
