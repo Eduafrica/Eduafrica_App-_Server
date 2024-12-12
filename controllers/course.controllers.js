@@ -246,7 +246,7 @@ export async function getCourse(req, res) {
         if(getCourse.isBlocked){
             return res.status(403).json({ success: false, data: 'This course has been blocked by admin' })
         }
-        if(!getCourse.approved !== 'Approved'){
+        if(getCourse.approved !== 'Approved'){
             return res.status(403).json({ success: false, data: 'This course has not been approved' })
         }
 
