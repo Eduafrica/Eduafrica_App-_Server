@@ -243,7 +243,7 @@ export async function getCourse(req, res) {
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course not found' })
         }
-        if(!getCourse.isBlocked){
+        if(getCourse.isBlocked){
             return res.status(403).json({ success: false, data: 'This course has been blocked by admin' })
         }
         if(!getCourse.approved !== 'Approved'){
