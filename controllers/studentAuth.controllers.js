@@ -200,7 +200,7 @@ export async function login(req, res) {
         //SEND TOKEN
         const token = user.getStudentSignedToken();
         const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
-        const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, _id, ...userData } = user._doc
+        const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = user._doc
         res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
         
     } catch (error) {
