@@ -35,7 +35,7 @@ router.get('/getCourseByCategory/:category', controllers.getCourseByCategory)
 router.get('/getCourseByParams/:param', controllers.getCourseByParams)
 router.get('/getCourseByCouponCode/:couponCode', controllers.getCourseByCouponCode)
 
-router.get('/getInstructorCourses/:_id', InstructorsOrAdminProtect, controllers.getInstructorCourses)
+router.get('/getInstructorCourses/:_id', controllers.getInstructorCourses)
 router.get('/getAInstructorCourse/:_id', InstructorsOrAdminProtect, controllers.getAInstructorCourse)
 router.get('/getCourseStats/:stats', AdminProtect, controllers.getCourseStats)
 
