@@ -20,7 +20,7 @@ const InstructorSchema = new mongoose.Schema({
     },
     phoneNumber: {
         type: String,
-        required: [ true, 'Phone Number is required'],
+        //required: [ true, 'Phone Number is required'],
         unique: [ true, 'Phone number is already exist' ]
     },
     profileImg: {

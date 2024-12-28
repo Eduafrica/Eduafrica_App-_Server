@@ -209,6 +209,43 @@ export async function login(req, res) {
     }
 }
 
+//GOOGLE AUTH LOGIN
+export async function googleSignin(req, res) {
+    const { photo, userName, userEmail } =  req.body
+    try {
+        const getEmail = await StudentModel.findOne({ email: userEmail })
+        let newUser
+        
+        if(getEmail){
+            //SEND TOKEN
+            getEmail.verified = true
+            getEmail.save()
+            const token = getEmail.getStudentSignedToken();
+            const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
+            const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = getEmail._doc
+            return res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
+        } else{
+            const generatedStudentCode = await generateUniqueCode(6)
+            console.log('STUDENT CODE>>', `EA${generatedStudentCode}`)
+    
+            newUser = await StudentModel.create({
+                email: userEmail, profileImg: photo, name: userName, displayName: userName, studentID: `EA${generatedStudentCode}`, password: generatedStudentCode, verified: true
+            })
+
+            //SEND TOKEN
+            const token = newUser.getStudentSignedToken();
+            const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
+            const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = newUser._doc
+            return res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
+        
+        }
+
+    } catch (error) {
+        console.log('UNABLE TO PROCEED WITH GOOGLE SIGNIN', error)
+        res.status(500).json({ success: false, data: 'Unable to proceed with google signin'})
+    }
+}
+
 //FORGOT PASSWORD
 export async function forgotPassword(req, res) {
     const { email } = req.body

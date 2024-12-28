@@ -130,8 +130,8 @@ export async function registerUser(req, res) {
             return res.status(400).json({ success: false, data: 'Whatsapp Number already exists. Please use another email' });
         }
 
-        const generatedInstructorCode = await generateUniqueCode(6)
-        console.log('ORGANIZATION CODE>>', `EA${generatedInstructorCode}`)
+        const generatedOrganizationCode = await generateUniqueCode(6)
+        console.log('ORGANIZATION CODE>>', `EA${generatedOrganizationCode}`)
 
 
         const user = await organizationModel.create({
@@ -147,7 +147,7 @@ export async function registerUser(req, res) {
             allowNotifications,
             preferredLanguage,
             country,
-            organisationID: `EA${generatedInstructorCode}`
+            organisationID: `EA${generatedOrganizationCode}`
         });
         
         console.log('USER CREATED');
@@ -237,6 +237,44 @@ export async function login(req, res) {
     } catch (error) {
         console.log(`UNABLE TO LOGIN USER WITH EMAIL: (${email})`, error)
         res.status(500).json({ success: false, data: 'Failed to login user' })
+    }
+}
+
+//GOOGLE AUTH LOGIN
+export async function googleSignin(req, res) {
+    const { photo, userName, userEmail } =  req.body
+    try {
+        const getEmail = await organizationModel.findOne({ email: userEmail })
+
+        let newUser
+        if(getEmail){
+            getEmail.verified = true
+            await getEmail.save()
+            //SEND TOKEN
+            const token = getEmail.getOrganizationSignedToken();
+            const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
+            const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = getEmail._doc
+            res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
+             
+        } else{
+            const generatedOrganizationCode = await generateUniqueCode(6)
+            console.log('ORGANIZATION CODE>>', `EA${generatedOrganizationCode}`)
+    
+            newUser = await organizationModel.create({
+                email: userEmail, profileImg: photo, name: userName, displayName: userName, organisationID: `EA${generatedOrganizationCode}`, password: generatedOrganizationCode, verified: true
+            })
+
+            //SEND TOKEN
+            const token = newUser.getOrganizationSignedToken();
+            const expiryDate = new Date(Date.now() + 10 * 60 * 60 * 1000)
+            const { resetPasswordToken, resetPasswordExpire, password: hashedPassword, ...userData } = newUser._doc
+            res.cookie('edtechafric', token, { httpOnly: true, expires: expiryDate, sameSite: 'None', secure: true } ).status(201).json({ success: true, token: token, isVerified: true, data: {success: true, data: userData }})
+        
+        }
+
+    } catch (error) {
+        console.log('UNABLE TO PROCEED WITH GOOGLE SIGNIN', error)
+        res.status(500).json({ success: false, data: 'Unable to proceed with google signin'})
     }
 }
 
