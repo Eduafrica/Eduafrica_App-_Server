@@ -11,8 +11,8 @@ router.post('/deleteAdvert', controllers.deleteAdvert)
 
 
 //GET ROUTES
-router.post('/fetchAllAdvert/:value', controllers.fetchAllAdvert)
-router.post('/fetchAdvert/:id', controllers.fetchAdvert)
+router.get('/fetchAllAdvert/:value', controllers.fetchAllAdvert)
+router.get('/fetchAdvert/:id', controllers.fetchAdvert)
 
 
 //PUT ROUTES

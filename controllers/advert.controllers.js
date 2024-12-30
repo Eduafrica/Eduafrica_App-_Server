@@ -10,7 +10,7 @@ export async function newAdvert(req, res) {
     if(!advertType){
         return res.status(400).json({ success: false, data: 'Advert type is required' })
     }
-    if(advertType.toLowerCase() !== 'banner' || advertType.toLowerCase() !== 'recommendation'){
+    if(advertType.toLowerCase() !== 'banner' && advertType.toLowerCase() !== 'recommendation'){
         return res.status(400).json({ success: false, data: 'Invalid Advert type. Advert type value: "banner", "recommendation"' })
     }
     try {
@@ -29,15 +29,15 @@ export async function newAdvert(req, res) {
 
 //UPDATE ADVERT
 export async function updateAdvert(req, res) {
-    const { id, name, image, destination, organizationUrl, startDate, endDate, type } = req.body
+    const { _id, name, image, destination, organizationUrl, startDate, endDate, type } = req.body
     try {
-        const getAdvert = await AdvertModel.findById({ _id: id })
+        const getAdvert = await AdvertModel.findById({ _id: _id })
         if(!getAdvert){
             return res.status(404).json({ success: false, data: 'Advert with this Id does not exist' })
         }
 
         const updateAdvertData = await AdvertModel.findByIdAndUpdate(
-            id, 
+            _id, 
             {
                 $set: {
                     name,
@@ -62,13 +62,14 @@ export async function updateAdvert(req, res) {
 //GET ALL ADVERTS BASED ON VALUE
 export async function fetchAllAdvert(req, res) {
     const { value } = req.params
-    if(value !== 'banner' || value !== 'recommendation'){
+    console.log('object', value)
+    if(value !== 'banner' && value !== 'recommendation'){
         return res.status(400).json({ success: false, data: 'Invalid value. value either: banner or recommendation'})
     }
     try {
         const newProps = value.toLowerCase()
 
-        const advertData = await AdvertModel.find({ adve: newProps })
+        const advertData = await AdvertModel.find({ advertType: newProps })
 
         res.status(200).json({ success: true, data: advertData })
     } catch (error) {

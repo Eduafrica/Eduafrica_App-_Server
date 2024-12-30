@@ -64,7 +64,8 @@ const CourseSchema = new mongoose.Schema({
         type: Array
     },
     studentsTotal: {
-        type: Number
+        type: Number,
+        default: 0
     },
     ratings: [{
         userName: {
@@ -106,6 +107,10 @@ const CourseSchema = new mongoose.Schema({
     isBlocked: {
         type: Boolean,
         default: false
+    },
+    active: {
+        type: Boolean,
+        default: true
     },
     approved: {
         type: String,

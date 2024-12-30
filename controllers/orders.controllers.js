@@ -3,10 +3,18 @@ import { generateUniqueCode } from "../middleware/utils.js"
 import CourseModel from "../models/Course.js"
 import OrderModel from "../models/Orders.js"
 import StudentModel from "../models/Student.js"
+import OrderValidationModel from "../models/OrderValidation.js"
+import axios from 'axios'
+import CouponCodeModel from "../models/CouponCode.js"
+import InstructorModel from "../models/Instructors.js"
+import SiteSettingModel from "../models/SiteSettings.js"
+import WalletModel from "../models/Wallet.js"
+import CourseContentModel from "../models/CourseContent.js"
+import organizationModel from "../models/Organization.js"
 
 export async function fetchAllOrders(req, res){
     try {
-        const orders = await OrderModel.find()
+        const orders = await OrderModel.find().sort({ createdAt: -1 })
 
         res.status(200).json({ success: true, data: orders })
     } catch (error) {
@@ -75,41 +83,247 @@ export async function getStudentOrders(req, res) {
 }
 
 export async function newOrder(req, res) {
-    const { userId, orderStatus, courseId } = req.body
+    const { courseId, couponCode } = req.body
+    const { _id } = req.user
+    if(!courseId){
+        return res.status(400).json({ success: false, data: 'Course ID is required' })
+    }
     try {
         const newOrderID = await generateUniqueCode(7)
         console.log('ORDER CODE>>', `${newOrderID}FD`)
 
-        const user = await StudentModel.findById({ _id: userId })
+        const user = await StudentModel.findById({ _id: _id })
         if(!user){
             return res.status(404).json({ success: false, data: 'Invalid User Account' })
         }
-        const getCourse = await CourseModel.findById({ _id: courseId })
+        const getCourse = await CourseModel.findOne({ slugCode: courseId })
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course Not Found' })
         }
         if(getCourse.isBlocked){
             return res.status(404).json({ success: false, data: 'Course is Blocked and cannot be accessed' })
         }
+        if(getCourse.approved !== 'Approved'){
+            return res.status(404).json({ success: false, data: 'Course is Blocked and cannot be accessed' })
+        }
+        if(!getCourse.active){
+            return res.status(404).json({ success: false, data: 'Course is not active' })
+        }
+
+        let payableAmount = getCourse?.price
+        let getCouponCodeCourse
+        if(couponCode){
+            getCouponCodeCourse = await CouponCodeModel.findOne({ code: couponCode })
+
+            if(!getCouponCodeCourse){
+                return res.status(404).json({ success: false, data: 'Invalid coupon code'})
+            }
+            if(getCouponCodeCourse?.quantityUsed >= getCouponCodeCourse?.maxNumber){
+                return res.status(403).json({ success: false, data: 'This coupon code is no longer availble' })
+            }
+
+            const priceOff = ( getCouponCodeCourse?.percentageOff * getCourse?.price ) / 100
+            payableAmount = getCourse?.price - priceOff
+        }
  
         const newOrder = await OrderModel.create({
-            userId, 
-            orderID: `${newOrderID}FD`, 
-            amount: getCourse?.price, 
-            orderStatus, courseId, 
+            userId: user?._id, 
+            orderId: `${newOrderID}FD`, 
+            orderID: Date.now(),
+            amount: getCourse?.price,
+            payableAmount: payableAmount,
+            discount: getCouponCodeCourse?.percentageOff ? true : false,
+            discountOff: getCouponCodeCourse?.percentageOff,
+            couponCode: getCouponCodeCourse?.quantityUsed < getCouponCodeCourse?.maxNumber ? getCouponCodeCourse?.code : '',
+            currency: getCourse?.priceCurrency, 
+            orderStatus: 'Initiated',
+            courseId: getCourse?._id,
+            courseSlug: getCourse?.slugCode,
             courseTitle: getCourse?.title,
             courseImg: getCourse?.coverImage, 
             categories: getCourse?.category, 
-            currency: getCourse?.priceCurrency, 
-            email: user?.email
+            email: user?.email,
         })
 
-        res.status(201).json({ success: true, data: 'ORDER CREATED' })
+        const newOrderValidation = await OrderValidationModel.create({
+            email: user?.email,
+            userId: user?._id,
+            amount: getCourse?.price,
+            payableAmount: payableAmount,
+            discount: getCouponCodeCourse?.percentageOff ? true : false,
+            discountOff: getCouponCodeCourse?.percentageOff,
+            currency: getCourse?.priceCurrency,
+            courseId: getCourse?._id,
+            courseSlug: getCourse?.slugCode,
+            courseInstructor: getCourse?.instructorName,
+            instructorCode: getCourse?.instructorId,
+            orderStatus: 'Initiated',
+            orderId: newOrder?._id,
+            orderSlug: newOrder?.orderId
+        })
+
+        const fullAmount = payableAmount * 100
+        const response = await axios.post(
+            `${process.env.PAYSTACK_INITIALIZE_URL}`,
+            {
+              email: user?.email,
+              amount: fullAmount,
+              currency: `${getCourse?.priceCurrency}`,
+              callback_url: process.env.CALLBACK_URL
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.PAYSTACK_TEST_SK}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+      
+          console.log(response.data);
+          const { authorization_url, reference } = response.data.data;
+          console.log('refrence',reference, authorization_url)
+          newOrder.paymentRefrence = reference
+          await newOrder.save()
+          newOrderValidation.paymentRefrence = reference
+          await newOrderValidation.save()
+
+        res.status(201).json({ success: true, data: 'ORDER CREATED', paymentUrl: authorization_url  })
     } catch (error) {
-        console.log('ERROR', error)
-        res.end()
+        console.log('UNABLE TO CREATE ORDER', error)
+        res.status(500).json({ success: false, data: 'Unable to create order' })
     }
 }
+
+//approve payment and approve course and approve secound validation from webhook
+
+//APPROVE COURSE PAYMENT BY ADMIN
+export async function updatePaymentStatus(req, res) {
+    const { id } = req.body
+    if(!id){
+        return res.status(400).json({ success: false, data: 'Order Id is required'})
+    }
+    try {
+        const getOrder = await OrderModel.findOne({ orderId: id })    
+        if(!getOrder){
+            return res.status(404).json({ success: false, data: 'Invalid order' })
+        }
+
+        const getCourse = await CourseModel.findById({ _id: getOrder?.courseId })
+        const getOrderValidation = await OrderValidationModel.findOne({ orderSlug: id })
+        const getStudent = await StudentModel.findById({ _id: getOrder?.userId })
+        let getInstructor
+        getInstructor = await InstructorModel.findById(getCourse?.instructorId);
+        if (!getInstructor) {
+          // If not found, try fetching from organizationModel
+          getInstructor = await organizationModel.findById(getCourse?.instructorId);
+        }
+        if (!getInstructor) {
+            return res.status(404).json({ success: false, data: `Instructor not found in either model for ID` });
+        }
+        const courseContent = await CourseContentModel.findOne({ courseId: getCourse?._id })
+
+        let getCouponCode
+        if(getOrder?.couponCode)(
+            getCouponCode = await CouponCodeModel.findOne({ code: getOrder?.couponCode })
+        )
+
+        
+        //get edu africa commision and subtract from order payable amount
+        const eduAfricaCommision = await SiteSettingModel.findOne()
+        const siteCommision = eduAfricaCommision?.salesPercentage
+        const commissionPrice = (siteCommision * getOrder?.payableAmount ) / 100
+        console.log('object amount', commissionPrice, siteCommision, getOrder?.payableAmount)
+
+        if(!getStudent){
+            return res.status(404).json({ success: false, data: "Student Does not exist" })
+        }
+        if(getOrder?.paid){
+            getOrder.paid = false
+            getOrder.orderStatus = 'Failed'
+            getOrderValidation.paid = false
+            getOrderValidation.orderStatus = 'Failed'
+
+
+            //remove student _id from student array course model
+            getCourse.students.pop(getOrder?.userId)
+            // remove course id from student course array
+            getStudent.course.pop(getCourse?._id)
+            // remove student _id from course content model
+            courseContent?.students?.pop(getOrder.userId)
+            //reduce student total by one in course model
+            getCourse.studentsTotal -= 1
+            //subtract from course owner earnings
+            getInstructor.totalTransaction -= (getOrder?.payableAmount - commissionPrice)
+            //remove coupon code reduce by one if there is
+            if(getCouponCode){
+                getCouponCode.quantityUsed -= 1
+            }
+            
+            //delete corresponding wallet income
+            const deleteWallet = await WalletModel.findOneAndDelete({ orderId: getOrder?.orderId })
+
+            //save
+            await getOrder.save()
+            await getOrderValidation.save()
+            await getCourse.save()
+            await getStudent.save()
+            await getInstructor.save()
+            if(getCouponCode){
+                await getCouponCode.save()
+            }
+            await courseContent.save()
+                        
+            return res.status(200).json({ success: true, data: 'Order status updated' })
+        } else {
+            getOrder.paid = true
+            getOrder.orderStatus = 'Successful'
+            getOrderValidation.paid = true
+            getOrderValidation.orderStatus = 'Successful'
+
+            //add student _id from student array course model
+            getCourse?.students.push(getOrder?.userId)
+            // add course id from student course array
+            getStudent?.course.push(getCourse?._id)
+            // remove student _id from course content model
+            courseContent?.students.push(getOrder?.userId)
+            //increase student total by one in course model
+            getCourse.studentsTotal += 1
+            //add course payable price to owner earnings
+            getInstructor.totalTransaction += (getOrder?.payableAmount - commissionPrice)
+            //add coupon code reduce by one if there is
+            if(getCouponCode){
+                getCouponCode.quantityUsed += 1
+            }
+
+            //create new wallet incom
+            const newWallet = await WalletModel.create({
+                orderId: getOrder?.orderId,
+                amount: commissionPrice,
+                note: 'Course bought'
+            })
+
+            //save
+            await getOrder.save()
+            await getOrderValidation.save()
+            await getCourse.save()
+            await getStudent.save()
+            await getInstructor.save()
+            if(getCouponCode){
+                await getCouponCode.save()
+            }
+            await courseContent.save()
+            
+            return res.status(200).json({ success: true, data: 'Order status updated' })
+        }
+
+
+    } catch (error) {
+        console.log('UNABLE TO UPDATE COURSE PAYMENT STATUS', error)
+        res.status(500).json({ success: false, data: 'Unable to update course payment status' })
+    }
+}
+
+//paystack webhook
 
 export async function getOrderStats(req, res) {
     const { stats } = req.params;

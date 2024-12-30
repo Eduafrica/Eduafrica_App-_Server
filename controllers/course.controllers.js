@@ -44,13 +44,23 @@ export async function newCourse(req, res) {
 
 //UPDATE COURSE INFO
 export async function updateCourse(req, res) {
-    const { _id, title, instructorName, about, desc, overview, category, price, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
+    const { _id, title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
+    const { _id: courseOnwerId } = req.user
     try {
+        const getCourse = await CourseModel.findById({ _id: id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'No course with this ID' })
+        }
+
+        if (getCourse.instructorId.toString() !== courseOnwerId.toString()) {
+            return res.status(403).json({ success: false, data: 'Not allowed: Permission Denied' });
+        }
+
         const findCourse = await CourseModel.findByIdAndUpdate(
             _id, 
             {
                 $set: {
-                    title, about, instructorName, desc, overview, category, price, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus
+                    title, about, instructorName, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus
                 }
             },
             { new: true }
@@ -104,7 +114,7 @@ export async function rateACourse(req, res) {
 export async function getAllCourse(req, res) {
     
     try {
-        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved' }).sort({ createdAt: -1 })
+        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved', active: true }).sort({ createdAt: -1 }).select('-students -studentsTotal')
         //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
@@ -120,7 +130,7 @@ export async function getAllCourse(req, res) {
 export async function getAllCourseAdmin(req, res) {
     
     try {
-        const allCourses = await CourseModel.find().sort({ createdAt: -1 })
+        const allCourses = await CourseModel.find().sort({ createdAt: -1 }).select('-students -studentsTotal')
         //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
@@ -163,8 +173,9 @@ export async function getCourseByCategory(req, res) {
         const courses = await CourseModel.find({
             category: { $in: catSlug?.category }, // No brackets needed if it's already an array
             isBlocked: false,
-            approved: 'Approved'
-          });
+            approved: 'Approved',
+            active: true
+          }).select('-students -studentsTotal');
         const coursesWithRatings = await calculateAverageCourseRating(courses);
 
         res.status(200).json({ success: true, data: coursesWithRatings })
@@ -239,12 +250,15 @@ export async function getCourse(req, res) {
             return res.status(404).json({ success: false, data: 'No Course ID' })
         }
 
-        const getCourse = await CourseModel.findById({ _id: _id })
+        const getCourse = await CourseModel.findById({ _id: _id }).select('-students -studentsTotal')
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course not found' })
         }
         if(getCourse.isBlocked){
             return res.status(403).json({ success: false, data: 'This course has been blocked by admin' })
+        }
+        if(!getCourse.active){
+            return res.status(403).json({ success: false, data: 'This course is no longer active' })
         }
         if(getCourse.approved !== 'Approved'){
             return res.status(403).json({ success: false, data: 'This course has not been approved' })
@@ -286,9 +300,9 @@ export async function getACourseAdmin(req, res) {
 export async function getPopularCourse(req, res) {
     try {
         // Fetch courses sorted by the number of students in descending order, limit to 100
-        const topCourses = await CourseModel.find()
+        const topCourses = await CourseModel.find({ isBlocked: false, active: true, approved: 'Approved' })
             .sort({ 'students.length': -1 }) 
-            .limit(100);
+            .limit(100).select('-students -studentsTotal');
 
         const shuffledCourses = topCourses.sort(() => 0.5 - Math.random());
         const selectedCourses = shuffledCourses.slice(0, 5);
@@ -324,7 +338,7 @@ export async function getCourseByCouponCode(req, res) {
             return res.status(404).json({ success: false, data: 'No Course with this ID found' })
         }
 
-        const getCourse = await CourseModel.findOne({ slugCode: getCode?.courseSlug })
+        const getCourse = await CourseModel.findOne({ slugCode: getCode?.courseSlug, }).select('-students -studentsTotal')
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course does not exist' })
         }
@@ -333,6 +347,9 @@ export async function getCourseByCouponCode(req, res) {
         }
         if(getCourse.isBlocked){
             return res.status(404).json({ success: false, data: 'Course has been Blocked' })
+        }
+        if(!getCourse.active){
+            return res.status(404).json({ success: false, data: 'Course is not active' })
         }
 
         res.status(200).json({ success: true, data: getCourse })
@@ -361,15 +378,6 @@ export async function reportCourse(req, res) {
    } 
 }
 
-//BUY A COURSE
-export async function buyCourse(req, res) {
-    try {
-        
-    } catch (error) {
-        
-    }
-}
-
 //FLAG A COURSE
 export async function flagCourse(req, res) {
     const { _id, reason } = req.body
@@ -385,6 +393,21 @@ export async function flagCourse(req, res) {
 
         getCourse.isBlocked = true
         await getCourse.save()
+
+        const courseExist = await CourseRejectionModel.findOne({ courseId: _id })
+        if(courseExist){
+            courseExist.reasons.push({reason})
+            await courseExist.save()
+
+        } else {
+            const newRejection = await CourseRejectionModel.create({
+                courseId: _id, 
+            })
+    
+            newRejection.reasons.push({reason})
+            await newRejection.save()
+        }
+
 
         const newNotification = await NotificationModel.create({
             message: `${getCourse.instructorName} course has been blocked by Admin`,
@@ -432,6 +455,9 @@ export async function unFlagCourse(req, res) {
 export async function requestCourseApproval(req, res) {
     const { id } = req.body
     const { _id } =  req.user
+    if(!id){
+        return res.status(400).json({ success: false, data: 'Course ID is required'})
+    }
     try {
         const getCourse = await CourseModel.findById({ _id: id })
         if(!getCourse){
@@ -559,7 +585,7 @@ export async function getInstructorCourses(req, res) {
         }
 
         // Fetch all courses for the instructor
-        const getCourses = await CourseModel.find({ instructorId: _id });
+        const getCourses = await CourseModel.find({ instructorId: _id }).select('-students -studentsTotal');
 
         // Check if a user is an instructor or organisation
         if (req.user) {
@@ -606,7 +632,7 @@ export async function getAInstructorCourse(req, res) {
         }
 
         // Find the course by ID
-        const course = await CourseModel.findOne({ _id });
+        const course = await CourseModel.findOne({ _id }).select('-students -studentsTotal');
 
         if (!course) {
             return res.status(404).json({ success: false, data: 'Course Not Found' });
@@ -775,3 +801,59 @@ export async function getCourseStats(req, res) {
         res.status(500).json({ success: false, data: 'Unable to get courses stats' });
     }
 }
+
+//DEACTIVATE A COURSE BY COURSE OWNER
+export async function deActivateCourse(req, res) {
+    const { _id } = req.body
+    const { _id: courseOnwerId } = req.user
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Course Id is required'})
+    }
+    try {
+        const getCourse = await CourseModel.findById({ _id: _id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
+        }
+
+        if (getCourse.instructorId.toString() !== courseOnwerId.toString()) {
+            return res.status(403).json({ success: false, data: 'Not allowed: Permission Denied' });
+        }
+
+        getCourse.active = false
+        await getCourse.save()
+
+        res.status(201).json({ success: true, data: 'Course has been Deactivated' })
+    } catch (error) {
+        console.log('UNABLE TO DEACTIVATE COURSE')
+        res.status(500).json({ success: false, data: 'Unable to deactivate course' })
+    }
+}
+
+//ACTIVATE A COURSE BY COURSE OWNER
+export async function activateCourse(req, res) {
+    const { _id } = req.body
+    const { _id: courseOnwerId } = req.user
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Course Id is required'})
+    }
+    try {
+        const getCourse = await CourseModel.findById({ _id: _id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
+        }
+
+        if (getCourse.instructorId.toString() !== courseOnwerId.toString()) {
+            return res.status(403).json({ success: false, data: 'Not allowed: Permission Denied' });
+        }
+
+        getCourse.active = true
+        await getCourse.save()
+
+        res.status(201).json({ success: true, data: 'Course has been Activated' })
+    } catch (error) {
+        console.log('UNABLE TO ACTIVATE COURSE')
+        res.status(500).json({ success: false, data: 'Unable to activate course' })
+    }
+}
+
+//DELETE COURSRE BY COURSE OWNER

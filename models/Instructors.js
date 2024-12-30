@@ -27,6 +27,10 @@ const InstructorSchema = new mongoose.Schema({
         type: String,
     },
     totalTransaction: {
+        type: Number,
+        default: 0
+    },
+    totalCourse: {
         type: Number
     },
     accountType: {

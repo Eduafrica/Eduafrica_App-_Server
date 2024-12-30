@@ -37,7 +37,9 @@ export async function initiateUpload(req, res) {
 
 // Receive chunk and write it to S3 bucket
 export async function uploadFile( req, res) {
-    const { index, fileName } = req.body;
+  console.log('S3 UPLOAD BODY', req.body)
+  console.log('FILE RECIEVED UPLOADING')  
+  const { index, fileName } = req.body;
     const file = req.file;
   
     const s3Params = {
@@ -50,7 +52,7 @@ export async function uploadFile( req, res) {
   
     s3.uploadPart(s3Params, (err, data) => {
       if (err) {
-        console.log(err);
+        console.log('S3 UPLOAD PART ERROR',err);
         return res.status(500).json({ success: false, message: 'Error uploading chunk' });
       }
   

@@ -735,6 +735,48 @@ paths:
         500: 
           description: Server error
 
+  /api/course/deActivateCourse:
+    post:
+      summary: Deactivate a course owner
+      description: Deactivate a course owner 
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              _id:
+                type: string
+      responses:
+        201: 
+          description: Course updated successfull
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/course/activateCourse:
+    post:
+      summary: Activate a course owner
+      description: Activate a course owner 
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              _id:
+                type: string
+      responses:
+        201: 
+          description: Course updated successfull
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/courseContent/uploadCourseContent:
     post:
       summary: Endpoint to create new course content(chapter) by instructors or organization
@@ -1212,6 +1254,29 @@ paths:
       responses:
         201: 
           description: Subscription saved! 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/orders/newOrder:
+    post:
+      summary: Endpoint to Order a new course courseId(slugCode) is required
+      description: Endpoint to Order a new course courseId(slugCode) is required
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - courseId
+            properties:
+              courseId:
+                type: string
+      responses:
+        201: 
+          description: success! 
         400:
           description: User error
         500: 

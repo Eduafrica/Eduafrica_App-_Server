@@ -1,11 +1,11 @@
 import express from 'express'
 import * as controllers from '../controllers/course.controllers.js'
-import { AdminProtect, InstructorsOrAdminProtect, Protect } from '../middleware/auth.js'
+import { AdminProtect, InstructorsOrAdminProtect, Protect, UserRole } from '../middleware/auth.js'
 
 const router = express.Router()
 
-router.post('/newCourse', Protect, controllers.newCourse )
-router.post('/updateCourse', Protect, controllers.updateCourse )
+router.post('/newCourse', Protect, UserRole(['instructor', 'organization']), controllers.newCourse )
+router.post('/updateCourse', Protect, UserRole(['instructor', 'organization']), controllers.updateCourse )
 router.post('/rateACourse', Protect, controllers.rateACourse )
 
 router.post('/newCategory', controllers.newCategory )
@@ -14,9 +14,12 @@ router.post('/flagCourse', AdminProtect, controllers.flagCourse )
 router.post('/unFlagCourse', AdminProtect, controllers.unFlagCourse )
 router.post('/reportCourse', controllers.reportCourse )
 
-router.post('/requestCourseApproval', InstructorsOrAdminProtect, controllers.requestCourseApproval)
+router.post('/requestCourseApproval', Protect, UserRole(['instructor', 'organization']), controllers.requestCourseApproval)
 router.post('/approveCourse', AdminProtect, controllers.approveCourse )
 router.post('/rejectCourse', AdminProtect, controllers.rejectCourse )
+
+router.post('/deActivateCourse', Protect, UserRole(['instructor', 'organization']), controllers.deActivateCourse)
+router.post('/activateCourse', Protect, UserRole(['instructor', 'organization']), controllers.activateCourse)
 
 
 
@@ -27,7 +30,7 @@ router.post('/rejectCourse', AdminProtect, controllers.rejectCourse )
 router.get('/getAllCourse',  controllers.getAllCourse)
 router.get('/getAllCourseAdmin',  controllers.getAllCourseAdmin)
 router.get('/getCourse/:_id', controllers.getCourse)
-router.get('/getACourseAdmin/:_id', controllers.getACourseAdmin)
+router.get('/getACourseAdmin/:_id', AdminProtect, controllers.getACourseAdmin)
 router.get('/getPopularCourse', controllers.getPopularCourse)
 router.get('/getAllCourseCategories', controllers.getAllCourseCategories)
 router.get('/getCourseByCategory/:category', controllers.getCourseByCategory)

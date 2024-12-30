@@ -18,7 +18,12 @@ const CouponCodeSchema = new mongoose.Schema({
         type: String
     },
     maxNumber: {
-        type: Number //Max number of student
+        type: Number, //Max number of student
+        default: 0,
+    },
+    quantityUsed: {
+        type: Number,
+        default: 0
     },
     students: {
         type: Array

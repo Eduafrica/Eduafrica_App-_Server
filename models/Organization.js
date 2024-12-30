@@ -46,7 +46,8 @@ const organizationSchema = new mongoose.Schema({
         type: String,
     },
     totalTransaction: {
-        type: Number
+        type: Number,
+        default: 0
     },
     allowNotifications: {
         type: Boolean,
