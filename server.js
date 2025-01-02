@@ -18,7 +18,8 @@ import courseRoute from './routes/course.routes.js';
 import courseContentRoute from './routes/courseContent.routes.js';
 import adminRoute from './routes/admin.routes.js';
 import orderRoute from './routes/orders.routes.js';
-import uploadRoute from './routes/upload.routes.js'; //TO upload course files
+import uploadRoute from './routes/upload.routes.js'; //TO upload files
+import appUploadRoute from './routes/appUpload.routes.js'; //TO upload course files from app
 import countryRoute from './routes/countries.routes.js';
 import cmsRoute from './routes/cms.routes.js';
 import couponRoute from './routes/couponCode.routes.js';
@@ -101,6 +102,7 @@ app.use('/api/courseContent', courseContentRoute);
 app.use('/api/admin', adminRoute)
 app.use('/api/orders', orderRoute)
 app.use('/api/upload', uploadRoute)
+app.use('/api/appUpload', appUploadRoute)
 app.use('/api/country', countryRoute)
 app.use('/api/cms', cmsRoute)
 app.use('/api/coupon', couponRoute)
