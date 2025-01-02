@@ -6,6 +6,7 @@ import CourseContentModel from "../models/CourseContent.js"
 import CourseRejectionModel from "../models/CourseRejectionReason.js"
 import NotificationModel from "../models/Notifications.js"
 import ReportCourseModel from "../models/ReportCourse.js"
+import StudentModel from "../models/Student.js"
 
 //CREATE NEW COURSE INFO
 export async function newCourse(req, res) {
@@ -114,7 +115,7 @@ export async function rateACourse(req, res) {
 export async function getAllCourse(req, res) {
     
     try {
-        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved', active: true }).sort({ createdAt: -1 }).select('-students -studentsTotal')
+        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved', active: true }).sort({ createdAt: -1 }).select('-students -studentsTotal -isBlocked -active -approved')
         //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
@@ -130,7 +131,7 @@ export async function getAllCourse(req, res) {
 export async function getAllCourseAdmin(req, res) {
     
     try {
-        const allCourses = await CourseModel.find().sort({ createdAt: -1 }).select('-students -studentsTotal')
+        const allCourses = await CourseModel.find().sort({ createdAt: -1 }).select('-students -studentsTotal -isBlocked -active -approved')
         //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
@@ -660,6 +661,87 @@ export async function getAInstructorCourse(req, res) {
     } catch (error) {
         console.error('UNABLE TO GET A COURSE OF AN INSTRUCTOR', error);
         res.status(500).json({ success: false, data: 'Unable to get the course of an instructor' });
+    }
+}
+
+//GET COURSE OFFERED AND BOUGHT BY STUDENT
+export async function getStudentCourses(req, res) {
+    const { _id } = req.params;
+
+    // Validate input
+    if (!_id) {
+        return res.status(400).json({ success: false, data: "Student ID is required" });
+    }
+
+    try {
+        // Fetch the student
+        const getStudent = await StudentModel.findById(_id);
+        if (!getStudent) {
+            return res.status(404).json({ success: false, data: "No Student Found" });
+        }
+
+        // Extract course IDs from the student's data
+        const studentCoursesArray = getStudent?.course || []; // Assuming `course` contains an array of course IDs
+
+        // Fetch and filter courses where:
+        // - Course ID is in the `studentCoursesArray`
+        // - The student's _id exists in the course's `students` array
+        const studentCourses = await CourseModel.find({
+            _id: { $in: studentCoursesArray },
+            students: _id,
+        }).select('-students -isDiscountAllowed -discountPercentage -isBlocked -active -approved');
+
+        const coursesWithRatings = await calculateAverageCourseRating(studentCourses);
+
+        // Return the filtered courses
+        return res.status(200).json({
+            success: true,
+            data: coursesWithRatings,
+        });
+    } catch (error) {
+        console.error("UNABLE TO GET STUDENT'S COURSES", error);
+        res.status(500).json({ success: false, data: "Unable to get student courses" });
+    }
+}
+
+//GET COURSE OFFERED AND BOIUGHT BY STUDENT
+export async function getAStudentCourse(req, res) {
+    const { _id } = req.params;
+    const { _id: userId, course: userCourses } = req.user;
+
+    // Validate input
+    if (!_id) {
+        return res.status(400).json({ success: false, data: "Course ID is required" });
+    }
+
+    try {
+        // Fetch the course by its ID
+        const getCourse = await CourseModel.findById(_id);
+
+        if (!getCourse) {
+            return res.status(404).json({ success: false, data: "Course not found" });
+        }
+
+        // Check if the userId is in the students array of the course
+        if (!getCourse.students.includes(userId)) {
+            return res.status(403).json({ success: false, data: "Access denied. You are not enrolled in this course" });
+        }
+
+        // Check if the course ID is in the user's course array
+        if (!userCourses.includes(getCourse._id.toString())) {
+            return res.status(403).json({ success: false, data: "Access denied. This course is not part of your enrolled courses" });
+        }
+
+        const coursesWithRatings = await calculateAverageCourseRating(getCourse);
+
+        // Return the course data if all checks pass
+        return res.status(200).json({
+            success: true,
+            data: coursesWithRatings,
+        });
+    } catch (error) {
+        console.error("UNABLE TO GET STUDENT COURSE", error);
+        return res.status(500).json({ success: false, data: "Unable to get course" });
     }
 }
 

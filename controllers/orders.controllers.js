@@ -121,6 +121,9 @@ export async function newOrder(req, res) {
             if(getCouponCodeCourse?.quantityUsed >= getCouponCodeCourse?.maxNumber){
                 return res.status(403).json({ success: false, data: 'This coupon code is no longer availble' })
             }
+            if(getCouponCodeCourse?.courseSlug !== getCourse?.slugCode){
+                return res.status(403).json({ success: false, data: 'Invalid coupon code'})
+            }
 
             const priceOff = ( getCouponCodeCourse?.percentageOff * getCourse?.price ) / 100
             payableAmount = getCourse?.price - priceOff
@@ -194,7 +197,97 @@ export async function newOrder(req, res) {
     }
 }
 
-//approve payment and approve course and approve secound validation from webhook
+//approve payment and approve course and approve secound validation from paystack webhook
+export async function verifyPaymentPaystackWebhook(req, res) {
+    const { event, data } = req.body;
+    try {
+  
+        // Handle different webhook events
+        if (event === 'charge.success') {
+          const metadata = data;
+          const refrence = data.reference || ''
+        
+          const getOrder = await OrderModel.findOne({ orderId: refrence })    
+          if(!getOrder){
+              return res.status(404).json({ success: false, data: 'Invalid order' })
+          }
+  
+          const getCourse = await CourseModel.findById({ _id: getOrder?.courseId })
+          const getOrderValidation = await OrderValidationModel.findOne({ orderSlug: id })
+          const getStudent = await StudentModel.findById({ _id: getOrder?.userId })
+          let getInstructor
+          getInstructor = await InstructorModel.findById(getCourse?.instructorId);
+          if (!getInstructor) {
+            // If not found, try fetching from organizationModel
+            getInstructor = await organizationModel.findById(getCourse?.instructorId);
+          }
+          if (!getInstructor) {
+              return res.status(404).json({ success: false, data: `Instructor not found in either model for ID` });
+          }
+          const courseContent = await CourseContentModel.findOne({ courseId: getCourse?._id })
+  
+          let getCouponCode
+          if(getOrder?.couponCode)(
+              getCouponCode = await CouponCodeModel.findOne({ code: getOrder?.couponCode })
+          )
+  
+          
+          //get edu africa commision and subtract from order payable amount
+          const eduAfricaCommision = await SiteSettingModel.findOne()
+          const siteCommision = eduAfricaCommision?.salesPercentage
+          const commissionPrice = (siteCommision * getOrder?.payableAmount ) / 100
+          console.log('object amount', commissionPrice, siteCommision, getOrder?.payableAmount)
+  
+          if(!getStudent){
+              return res.status(404).json({ success: false, data: "Student Does not exist" })
+          }
+
+          getOrder.paid = true
+          getOrder.orderStatus = 'Successful'
+          getOrderValidation.paid = true
+          getOrderValidation.orderStatus = 'Successful'
+
+          //add student _id from student array course model
+          getCourse?.students.push(getOrder?.userId)
+          // add course id from student course array
+          getStudent?.course.push(getCourse?._id)
+          // remove student _id from course content model
+          courseContent?.students.push(getOrder?.userId)
+          //increase student total by one in course model
+          getCourse.studentsTotal += 1
+          //add course payable price to owner earnings
+          getInstructor.totalTransaction += (getOrder?.payableAmount - commissionPrice)
+          //add coupon code reduce by one if there is
+          if(getCouponCode){
+              getCouponCode.quantityUsed += 1
+          }
+
+          //create new wallet incom
+          const newWallet = await WalletModel.create({
+              orderId: getOrder?.orderId,
+              amount: commissionPrice,
+              note: 'Course bought'
+          })
+
+          //save
+          await getOrder.save()
+          await getOrderValidation.save()
+          await getCourse.save()
+          await getStudent.save()
+          await getInstructor.save()
+          if(getCouponCode){
+              await getCouponCode.save()
+          }
+          await courseContent.save()
+          
+          //return res.status(200).json({ success: true, data: 'Order status updated' })
+          res.status(200).end()
+
+        }
+    } catch (error) {
+        console.log('object', error)
+    }
+}
 
 //APPROVE COURSE PAYMENT BY ADMIN
 export async function updatePaymentStatus(req, res) {
@@ -263,15 +356,15 @@ export async function updatePaymentStatus(req, res) {
             const deleteWallet = await WalletModel.findOneAndDelete({ orderId: getOrder?.orderId })
 
             //save
-            await getOrder.save()
-            await getOrderValidation.save()
-            await getCourse.save()
-            await getStudent.save()
-            await getInstructor.save()
+            await getOrder?.save()
+            await getOrderValidation?.save()
+            await getCourse?.save()
+            await getStudent?.save()
+            await getInstructor?.save()
             if(getCouponCode){
-                await getCouponCode.save()
+                await getCouponCode?.save()
             }
-            await courseContent.save()
+            await courseContent?.save()
                         
             return res.status(200).json({ success: true, data: 'Order status updated' })
         } else {
@@ -303,15 +396,15 @@ export async function updatePaymentStatus(req, res) {
             })
 
             //save
-            await getOrder.save()
-            await getOrderValidation.save()
-            await getCourse.save()
-            await getStudent.save()
-            await getInstructor.save()
+            await getOrder?.save()
+            await getOrderValidation?.save()
+            await getCourse?.save()
+            await getStudent?.save()
+            await getInstructor?.save()
             if(getCouponCode){
-                await getCouponCode.save()
+                await getCouponCode?.save()
             }
-            await courseContent.save()
+            await courseContent?.save()
             
             return res.status(200).json({ success: true, data: 'Order status updated' })
         }
@@ -322,8 +415,6 @@ export async function updatePaymentStatus(req, res) {
         res.status(500).json({ success: false, data: 'Unable to update course payment status' })
     }
 }
-
-//paystack webhook
 
 export async function getOrderStats(req, res) {
     const { stats } = req.params;

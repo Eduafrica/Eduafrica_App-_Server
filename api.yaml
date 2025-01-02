@@ -1281,3 +1281,28 @@ paths:
           description: User error
         500: 
           description: Server error
+
+  /api/course/getStudentCourses/:_id:
+    get:
+      summary: Gets all paid courses offered by a student
+      description: Gets all paid courses of a student *use to get all paid courses of a student pass id of the student as params
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/course/getAStudentCourse/:_id:
+    get:
+      summary: Gets a course offered by a student
+      description: Gets a course offered by a student *use to get a courses of a student pass id of the course as params
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+

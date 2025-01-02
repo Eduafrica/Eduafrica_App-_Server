@@ -72,6 +72,11 @@ const OrderSchema = new mongoose.Schema({
     paid: {
         type: Boolean,
         default: false,
+    },
+    paymentType: {
+        type: String,
+        default: 'online',
+        enum: ['online', 'offline']
     }
 },
 { timestamps: true }

@@ -6,6 +6,8 @@ const router = express.Router()
 
 router.post('/newOrder', Protect, controllers.newOrder)
 router.post('/updatePaymentStatus', AdminProtect, controllers.updatePaymentStatus)
+router.post('/verifyPaymentPaystackWebhook', controllers.verifyPaymentPaystackWebhook)
+
 
 
 
