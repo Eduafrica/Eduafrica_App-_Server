@@ -22,10 +22,12 @@ export async function newCourse(req, res) {
         if(skillsToGain?.length < 1){
             return res.status(400).json({ success: false, data: '' })
         }
-        if(studentLevel && studentLevel !== 'Beginner' || studentLevel !== 'Intermediate' || studentLevel !== 'Advanced' ){
-            return res.status(400).json({ success: false, data: 'Student Level is either: Beginner, Intermediate, or Advanced'})
+        if (studentLevel && !['Beginner', 'Intermediate', 'Advanced'].includes(studentLevel)) {
+            return res.status(400).json({ 
+                success: false, 
+                data: 'Student Level is either: Beginner, Intermediate, or Advanced' 
+            });
         }
-
         const generatedCourseSlug = await generateUniqueCode(6)
         console.log('COURSE SLUG>>', `AFRIC${generatedCourseSlug}`, generatedCourseSlug)
 
