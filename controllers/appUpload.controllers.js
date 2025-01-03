@@ -27,7 +27,7 @@ async function uploadPart(buffer, partNumber, uploadId, fileKey) {
 
 // Main function to handle file upload
 export async function appUpload(req, res) {
-    console.log('object body', req)
+    //console.log('object body', req)
     console.log('object body file', req.file)
     try {
         // Ensure a file was uploaded
