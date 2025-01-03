@@ -26,60 +26,80 @@ async function uploadPart(buffer, partNumber, uploadId, fileKey) {
 }
 
 // Main function to handle file upload
-export async function appUpload(req, res) {
-    //console.log('object body', req)
-    console.log('object body file', req.file)
-    try {
-        // Ensure a file was uploaded
-        if (!req.file) {
-            return res.status(400).send('No file uploaded');
+export const appUpload = (req, res) => {
+    upload(req, res, async (err) => {
+        if (err) {
+            console.error('Error with multer upload:', err);
+            return res.status(400).send('Error with file upload');
         }
 
-        const fileBuffer = req.file.buffer;
-        const fileSize = fileBuffer.length;
-        const fileKey = req.file.originalname; // Use original filename as the S3 key
+        try {
+            // Ensure a file was uploaded
+            if (!req.file) {
+                return res.status(400).send('No file uploaded');
+            }
 
-        // Start the multipart upload
-        const createUploadParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: fileKey,
-        };
+            const fileBuffer = req.file.buffer;
+            const fileSize = fileBuffer.length;
+            const fileKey = req.file.originalname; // Use original filename as the S3 key
 
-        const createUploadResult = await s3.createMultipartUpload(createUploadParams).promise();
-        const uploadId = createUploadResult.UploadId;
-        const partCount = Math.ceil(fileSize / CHUNK_SIZE);
+            // Start the multipart upload
+            const createUploadParams = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: fileKey,
+            };
 
-        // Array to store the uploaded parts
-        const uploadedParts = [];
+            const createUploadResult = await s3.createMultipartUpload(createUploadParams).promise();
+            const uploadId = createUploadResult.UploadId;
+            const partCount = Math.ceil(fileSize / CHUNK_SIZE);
 
-        // Upload file in chunks
-        for (let partNumber = 1; partNumber <= partCount; partNumber++) {
-            const startByte = (partNumber - 1) * CHUNK_SIZE;
-            const endByte = Math.min(startByte + CHUNK_SIZE, fileSize);
-            const chunk = fileBuffer.slice(startByte, endByte);
+            // Array to store the uploaded parts
+            const uploadedParts = [];
 
-            console.log(`Uploading part ${partNumber} from byte ${startByte} to ${endByte}`);
+            // Upload file in chunks
+            for (let partNumber = 1; partNumber <= partCount; partNumber++) {
+                const startByte = (partNumber - 1) * CHUNK_SIZE;
+                const endByte = Math.min(startByte + CHUNK_SIZE, fileSize);
+                const chunk = fileBuffer.slice(startByte, endByte);
 
-            const part = await uploadPart(chunk, partNumber, uploadId, fileKey);
-            uploadedParts.push(part);
+                console.log(`Uploading part ${partNumber} from byte ${startByte} to ${endByte}`);
+
+                const part = await uploadPart(chunk, partNumber, uploadId, fileKey);
+                uploadedParts.push(part);
+            }
+
+            // Complete the multipart upload
+            const completeUploadParams = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: fileKey,
+                UploadId: uploadId,
+                MultipartUpload: {
+                    Parts: uploadedParts,
+                },
+            };
+
+            const completeUploadResult = await s3.completeMultipartUpload(completeUploadParams).promise();
+            console.log('Upload complete:', completeUploadResult);
+
+            return res.status(200).json({
+                success: true,
+                message: 'Upload successful',
+                data: completeUploadResult.Location,
+            });
+        } catch (error) {
+            console.error('Error uploading file:', error);
+
+            // Abort the multipart upload in case of an error
+            if (req.file && req.file.originalname) {
+                const abortUploadParams = {
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: req.file.originalname,
+                    UploadId: req.file.uploadId,
+                };
+                await s3.abortMultipartUpload(abortUploadParams).promise();
+            }
+
+            return res.status(500).json({ success: false, data: 'Error uploading file'});
         }
-
-        // Complete the multipart upload
-        const completeUploadParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: fileKey,
-            UploadId: uploadId,
-            MultipartUpload: {
-                Parts: uploadedParts,
-            },
-        };
-
-        const completeUploadResult = await s3.completeMultipartUpload(completeUploadParams).promise();
-        console.log('Upload complete:', completeUploadResult);
-
-        return res.status(200).json({ message: 'Upload successful', location: completeUploadResult.Location });
-    } catch (error) {
-        console.error('Error uploading file:', error);
-        return res.status(500).send('Error uploading file');
-    }
-}
+    });
+};
