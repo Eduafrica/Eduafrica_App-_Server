@@ -14,7 +14,7 @@ export async function newCourse(req, res) {
     const { title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
     try {
         if(!title || !about || !overview || !price || !coverImage || !studentLevel || !language){
-            return res.status(400).json({ success: false, data: 'Fill all required fields'})
+            return res.status(400).json({ success: false, data: 'Title, about, overview, price, cover image, student level, and language are required'})
         }
         if(category?.length < 1){
             return res.status(400).json({ success: false, data: 'Atleast one category is required' })
