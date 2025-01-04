@@ -13,6 +13,7 @@ router.post('/updateCourseContent', Protect, UserRole(['instructor', 'organizati
 //GET ROUTES
 router.get('/getCourseContentForAdmin/:id', AdminProtect, controllers.getCourseContentForAdmin )
 router.get('/getCourseContentForInstructor/:id', Protect, UserRole(['instructor', 'organization']), controllers.getCourseContentForInstructor )
+router.get('/getAStudentCourseContent/:_id', Protect, UserRole(['student']), controllers.getAStudentCourseContent)
 
 
 

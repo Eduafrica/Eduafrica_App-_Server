@@ -669,7 +669,7 @@ export async function getAInstructorCourse(req, res) {
     }
 }
 
-//GET COURSE OFFERED AND BOUGHT BY STUDENT
+//GET COURSES OFFERED AND BOUGHT BY STUDENT
 export async function getStudentCourses(req, res) {
     const { _id } = req.params;
 
@@ -709,7 +709,7 @@ export async function getStudentCourses(req, res) {
     }
 }
 
-//GET COURSE OFFERED AND BOIUGHT BY STUDENT
+//GET A COURSE OFFERED AND BOUGHT BY STUDENT
 export async function getAStudentCourse(req, res) {
     const { _id } = req.params;
     const { _id: userId, course: userCourses } = req.user;

@@ -1306,3 +1306,15 @@ paths:
         500: 
           description: Server error
 
+  /api/courseContent/getAStudentCourseContent/:_id:
+    get:
+      summary: Gets the course content of a course offered by a student
+      description: Gets the course content of a course offered by a student *use to get the course content of a course for student pass id of the course as params
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+

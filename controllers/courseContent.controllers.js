@@ -174,3 +174,42 @@ export async function getCourseContentForInstructor(req, res) {
         res.status(500).json({ success: false, data: 'Unable to get course content' })
     }
 }
+
+//GET A COURSE CONTENT OFFERED AND BOUGHT BY STUDENT
+export async function getAStudentCourseContent(req, res) {
+    const { _id } = req.params;
+    const { _id: userId, course: userCourses } = req.user;
+
+    // Validate input
+    if (!_id) {
+        return res.status(400).json({ success: false, data: "Course ID is required" });
+    }
+
+    try {
+        // Fetch the course by its ID
+        const getCourse = await CourseContentModel.findOne({ courseId: _id });
+
+        if (!getCourse) {
+            return res.status(404).json({ success: false, data: "Course content not found" });
+        }
+
+        // Check if the userId is in the students array of the course
+        if (!getCourse.students.includes(userId)) {
+            return res.status(403).json({ success: false, data: "Access denied. You are not enrolled in this course" });
+        }
+
+        // Check if the course ID is in the user's course array
+        if (!userCourses.includes(_id.toString())) {
+            return res.status(403).json({ success: false, data: "Access denied. This course is not part of your enrolled courses" });
+        }
+
+        // Return the course data if all checks pass
+        return res.status(200).json({
+            success: true,
+            data: getCourse,
+        });
+    } catch (error) {
+        console.error("UNABLE TO GET STUDENT COURSE CONTENT", error);
+        return res.status(500).json({ success: false, data: "Unable to get course content" });
+    }
+}
