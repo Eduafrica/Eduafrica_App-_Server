@@ -44,6 +44,7 @@ const StudentSchema = new mongoose.Schema({
     },
     country: {
         type: String,
+        //enum: ['']
     },
     studentID: {
         type: String,

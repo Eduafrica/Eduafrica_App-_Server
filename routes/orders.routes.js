@@ -20,6 +20,7 @@ router.get('/getOrderStats/:stats', AdminProtect, controllers.getOrderStats)
 router.get('/fetchAllOrders', AdminProtect, controllers.fetchAllOrders)
 router.get('/fetchOrder/:_id', AdminProtect, controllers.fetchOrder)
 
+router.get('/topSellingCourse/:stats', AdminProtect, controllers.topSellingCourse)
 
 
 

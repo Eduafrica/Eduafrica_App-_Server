@@ -41,6 +41,17 @@ export async function fetchOrder(req, res) {
     }
 }
 
+//GET TOP SELLING COURSE
+export async function topSellingCourse(req, res) {
+    const { stats } = req.body
+    try {
+        console.log('stats', stats)
+    } catch (error) {
+        console.log('UNABLE TO GET TOP SELLING COURSE', error)
+        res.status(500).json({ success: false, data: 'Unable to get top selling course' })
+    }
+}
+
 //GET A STUDENT ORDERS
 export async function getStudentOrders(req, res) {
     const { _id } = req.params
@@ -84,7 +95,7 @@ export async function getStudentOrders(req, res) {
 
 export async function newOrder(req, res) {
     const { courseId, couponCode } = req.body
-    const { _id } = req.user
+    const { _id, country } = req.user
     if(!courseId){
         return res.status(400).json({ success: false, data: 'Course ID is required' })
     }
@@ -165,13 +176,22 @@ export async function newOrder(req, res) {
             orderSlug: newOrder?.orderId
         })
 
+        //CREATE ORDER FORM HERE FOR STUDENT NOT IN NIGERIA
+        if(country.toLowerCase() !== 'nigeria'){
+            return res.status(201).json({ 
+                                            success: true, 
+                                            data: 'Order form has been created successful please contact admin',
+                                            orderId: newOrder?.orderId
+                                        })
+        }
+
         const fullAmount = payableAmount * 100
         const response = await axios.post(
             `${process.env.PAYSTACK_INITIALIZE_URL}`,
             {
               email: user?.email,
               amount: fullAmount,
-              currency: `${getCourse?.priceCurrency}`,
+              currency: `NGN`, //GHS or ${getCourse?.priceCurrency}
               callback_url: process.env.CALLBACK_URL
             },
             {
