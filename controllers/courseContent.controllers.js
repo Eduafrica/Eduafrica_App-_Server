@@ -22,7 +22,7 @@ export async function uploadCourseContent(req, res) {
         if(assestLink && !assestType){
             return res.status(400).json({ success: false, data: 'Provide a corresponding assest type for media assest' })
         }
-        if(assestLink && assestType !== 'video' || assestType !== 'audio' || assestType !== 'image' || assestType !== 'pdf'){
+        if(assestLink && !["video", "audio", "image", "pdf"].includes(assestType)){
             return res.status(400).json({ success: false, data: "Invalid assest Type, type should be either: 'video', 'audio', 'image', 'pdf'"})
         }
         const getCourse = await CourseModel.findOne({ slugCode: courseID })

@@ -84,6 +84,9 @@ export async function fetchAdvert(req, res) {
     if(!id){
         return res.status(400).json({ success: false, data: 'Provide an advert id' })
     }
+    if(id === 'noid'){
+        return
+    }
     try {
         const getAdvert = await AdvertModel.findById({ _id: id })
         if(!getAdvert){
