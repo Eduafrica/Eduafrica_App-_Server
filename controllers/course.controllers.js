@@ -41,7 +41,7 @@ export async function newCourse(req, res) {
             name: `${name}`
         })
 
-        res.status(201).json({ success: true, data: 'Cousre created successfull', courseId: makeNewCourse._id })
+        res.status(201).json({ success: true, data: 'Cousre created successfull', courseId: makeNewCourse.slugCode })
     } catch (error) {
         console.log('UNABLE TO CREATE A NEW CREATE NEW COURSE', error)
         res.status(500).json({ success: false, data: 'Unable to create new course'})
