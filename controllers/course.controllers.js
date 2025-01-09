@@ -120,7 +120,7 @@ export async function rateACourse(req, res) {
 export async function getAllCourse(req, res) {
     
     try {
-        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved', active: true }).sort({ createdAt: -1 }).select('-students -studentsTotal -isBlocked -active -approved')
+        const allCourses = await CourseModel.find({ isBlocked: false, approved: 'Approved', active: true }).sort({ createdAt: -1 }).select('-students -isBlocked -active -approved')
         //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
@@ -136,7 +136,7 @@ export async function getAllCourse(req, res) {
 export async function getAllCourseAdmin(req, res) {
     
     try {
-        const allCourses = await CourseModel.find().sort({ createdAt: -1 }).select('-students -studentsTotal -isBlocked -active -approved')
+        const allCourses = await CourseModel.find().sort({ createdAt: -1 }).select('-students')
         //const allCourses = await CourseModel.find().sort({ createdAt: -1 })
 
         const coursesWithRatings = await calculateAverageCourseRating(allCourses);
@@ -181,7 +181,7 @@ export async function getCourseByCategory(req, res) {
             isBlocked: false,
             approved: 'Approved',
             active: true
-          }).select('-students -studentsTotal');
+          }).select('-students -isBlocked -active -approved');
         const coursesWithRatings = await calculateAverageCourseRating(courses);
 
         res.status(200).json({ success: true, data: coursesWithRatings })
@@ -256,7 +256,7 @@ export async function getCourse(req, res) {
             return res.status(404).json({ success: false, data: 'No Course ID' })
         }
 
-        const getCourse = await CourseModel.findById({ _id: _id }).select('-students -studentsTotal')
+        const getCourse = await CourseModel.findById({ _id: _id }).select('-students -isBlocked -active -approved')
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course not found' })
         }
@@ -293,7 +293,7 @@ export async function getACourseAdmin(req, res) {
             return res.status(404).json({ success: false, data: 'Course not found' })
         }
 
-        const coursesWithRatings = await calculateAverageCourseRating(getCourse);
+        const getAllCourse = await calculateAverageCourseRating(getCourse);
 
         res.status(200).json({ success: true, data: coursesWithRatings })
     } catch (error) {
@@ -308,7 +308,7 @@ export async function getPopularCourse(req, res) {
         // Fetch courses sorted by the number of students in descending order, limit to 100
         const topCourses = await CourseModel.find({ isBlocked: false, active: true, approved: 'Approved' })
             .sort({ 'students.length': -1 }) 
-            .limit(100).select('-students -studentsTotal');
+            .limit(100).select('-students -isBlocked -active -approved');
 
         const shuffledCourses = topCourses.sort(() => 0.5 - Math.random());
         const selectedCourses = shuffledCourses.slice(0, 5);
@@ -344,7 +344,7 @@ export async function getCourseByCouponCode(req, res) {
             return res.status(404).json({ success: false, data: 'No Course with this ID found' })
         }
 
-        const getCourse = await CourseModel.findOne({ slugCode: getCode?.courseSlug, }).select('-students -studentsTotal')
+        const getCourse = await CourseModel.findOne({ slugCode: getCode?.courseSlug, }).select('-students -isBlocked -active -approved')
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'Course does not exist' })
         }
@@ -591,7 +591,7 @@ export async function getInstructorCourses(req, res) {
         }
 
         // Fetch all courses for the instructor
-        const getCourses = await CourseModel.find({ instructorId: _id }).select('-students -studentsTotal');
+        const getCourses = await CourseModel.find({ instructorId: _id }).select('-studentsTotal');
 
         // Check if a user is an instructor or organisation
         if (req.user) {
@@ -638,7 +638,7 @@ export async function getAInstructorCourse(req, res) {
         }
 
         // Find the course by ID
-        const course = await CourseModel.findOne({ _id }).select('-students -studentsTotal');
+        const course = await CourseModel.findOne({ _id }).select('-students');
 
         if (!course) {
             return res.status(404).json({ success: false, data: 'Course Not Found' });
@@ -680,7 +680,7 @@ export async function getStudentCourses(req, res) {
 
     try {
         // Fetch the student
-        const getStudent = await StudentModel.findById(_id);
+        const getStudent = await StudentModel.findById(_id).select('-students -isBlocked -active -approved');
         if (!getStudent) {
             return res.status(404).json({ success: false, data: "No Student Found" });
         }
@@ -721,7 +721,7 @@ export async function getAStudentCourse(req, res) {
 
     try {
         // Fetch the course by its ID
-        const getCourse = await CourseModel.findById(_id);
+        const getCourse = await CourseModel.findById(_id).select(`-students -isBlocked -active -approved`);
 
         if (!getCourse) {
             return res.status(404).json({ success: false, data: "Course not found" });
