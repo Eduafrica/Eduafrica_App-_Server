@@ -465,7 +465,7 @@ export async function requestCourseApproval(req, res) {
         return res.status(400).json({ success: false, data: 'Course ID is required'})
     }
     try {
-        const getCourse = await CourseModel.findById({ _id: id })
+        const getCourse = await CourseModel.findOne({ slugCode: id })
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'No course with this ID' })
         }
