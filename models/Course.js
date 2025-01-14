@@ -17,9 +17,13 @@ const CourseSchema = new mongoose.Schema({
             period: {
                 type: String,
             },
-            mileStone: {
-                type: String
-            }
+            mileStone: [
+                {
+                    progress: {
+                        type: String,
+                    }
+                }
+            ]
         }
     ],
     instructorName: {
@@ -33,6 +37,9 @@ const CourseSchema = new mongoose.Schema({
     instructorId: {
         type: String,
         required: [true, 'Instructors ID is required']
+    },
+    instructorImg: {
+        type: String
     },
     category: {
         type: Array,

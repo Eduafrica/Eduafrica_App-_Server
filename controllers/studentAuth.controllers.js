@@ -668,9 +668,6 @@ export async function toggleblock(req, res) {
 }
 
 
-
-
-
 //OAUTH
 export async function googleOAuth(req, res) {
     res.haeder('Access-Controll-Allow-Origin', 'http://localhost:9000')

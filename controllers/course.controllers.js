@@ -8,9 +8,33 @@ import NotificationModel from "../models/Notifications.js"
 import ReportCourseModel from "../models/ReportCourse.js"
 import StudentModel from "../models/Student.js"
 
+function validateSyllabus(syllabus) {
+    if (!Array.isArray(syllabus)) {
+      return { valid: false, message: 'Syllabus must be an array' };
+    }
+  
+    for (let period of syllabus) {
+      if (typeof period !== 'object' || !period.period || typeof period.period !== 'string') {
+        return { valid: false, message: 'Each syllabus item must have a "period" of type string' };
+      }
+      
+      if (!Array.isArray(period.mileStone)) {
+        return { valid: false, message: 'mileStone must be an array' };
+      }
+  
+      for (let mileStoneItem of period.mileStone) {
+        if (typeof mileStoneItem !== 'object' || !mileStoneItem.progress || typeof mileStoneItem.progress !== 'string') {
+          return { valid: false, message: 'Each mileStone must have a "progress" of type string' };
+        }
+      }
+    }
+  
+    return { valid: true, message: 'Syllabus is valid' };
+  }
+
 //CREATE NEW COURSE INFO
 export async function newCourse(req, res) {
-    const { _id, email, name } = req.user
+    const { _id, email, name, profileImg } = req.user
     const { title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
     try {
         if(!title || !about || !overview || !price || !coverImage || !studentLevel || !language || !priceCurrency){
@@ -27,6 +51,13 @@ export async function newCourse(req, res) {
                 success: false, 
                 data: 'Student Level is either: Beginner, Intermediate, or Advanced' 
             });
+        }
+        if(syllabus){
+            const validationResult = validateSyllabus(syllabus);
+            if (!validationResult.valid) {
+                console.error(validationResult.message);
+                return res.status(400).json({ success: false, data: validationResult.message });
+            }
         }
         const generatedCourseSlug = await generateUniqueCode(6)
         console.log('COURSE SLUG>>', `AFRIC${generatedCourseSlug}`, generatedCourseSlug)

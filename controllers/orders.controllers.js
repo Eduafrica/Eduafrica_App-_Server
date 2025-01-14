@@ -42,13 +42,68 @@ export async function fetchOrder(req, res) {
 }
 
 //GET TOP SELLING COURSE
+const timePeriods = {
+    today: 1,
+    '7days': 7,
+    '15days': 15,
+    '30days': 30,
+    '3mth': 90,
+    '6mtn': 180,
+    '1year': 365,
+    alltime: null // Use null for all-time stats
+};
+
 export async function topSellingCourse(req, res) {
-    const { stats } = req.body
+    const { stats } = req.params;
+    const period = timePeriods[stats];
+
+    if (period === undefined) {
+        return res.status(400).json({ success: false, message: 'Invalid stats period' });
+    }
+
     try {
-        console.log('stats', stats)
+        const filter = {
+            paid: true,
+            orderStatus: 'Successful',
+            ...(period && { createdAt: { $gte: new Date(Date.now() - period * 24 * 60 * 60 * 1000) } })
+        };
+
+        const topCourses = await OrderModel.aggregate([
+            { $match: filter },
+            {
+                $group: {
+                    _id: '$courseId',
+                    totalOrders: { $sum: 1 },
+                    totalRevenue: { $sum: '$payableAmount' } // Summing up payableAmount
+                }
+            },
+            { $sort: { totalOrders: -1 } }, // Sort by total orders in descending order
+            { $limit: 10 }
+        ]);
+
+        const courseIds = topCourses.map(course => course._id);
+        const courseDetails = await CourseModel.find({ _id: { $in: courseIds } });
+
+        const result = topCourses.map(course => {
+            const courseDetail = courseDetails.find(c => c._id.toString() === course._id.toString());
+            return {
+                courseId: course._id,
+                title: courseDetail?.title || 'Unknown',
+                category: courseDetail?.category,
+                createdAt: courseDetail?.createdAt,
+                img: courseDetail?.instructorImg,
+                instructorName: courseDetail?.instructorName,
+                instructorEmail: courseDetail?.instructorEmail,
+                coverImage: courseDetail?.coverImage || '',
+                totalOrders: course.totalOrders,
+                totalRevenue: course.totalRevenue // Summed payableAmount
+            };
+        });
+
+        return res.status(200).json({ success: true, data: result });
     } catch (error) {
-        console.log('UNABLE TO GET TOP SELLING COURSE', error)
-        res.status(500).json({ success: false, data: 'Unable to get top selling course' })
+        console.error('UNABLE TO GET TOP SELLING COURSE', error);
+        res.status(500).json({ success: false, message: 'Unable to get top-selling course' });
     }
 }
 
@@ -264,6 +319,7 @@ export async function verifyPaymentPaystackWebhook(req, res) {
 
           getOrder.paid = true
           getOrder.orderStatus = 'Successful'
+          getOrder.paymentType = 'online'
           getOrderValidation.paid = true
           getOrderValidation.orderStatus = 'Successful'
 
