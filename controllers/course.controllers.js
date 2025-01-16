@@ -52,6 +52,7 @@ export async function newCourse(req, res) {
                 data: 'Student Level is either: Beginner, Intermediate, or Advanced' 
             });
         }
+        console.log('syllabus', syllabus)
         if(syllabus){
             const validationResult = validateSyllabus(syllabus);
             if (!validationResult.valid) {
