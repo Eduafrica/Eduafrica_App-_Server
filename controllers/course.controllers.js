@@ -209,11 +209,33 @@ export async function getCourseByCategory(req, res) {
         }
 
         const courses = await CourseModel.find({
-            category: { $in: catSlug?.category }, // No brackets needed if it's already an array
-            isBlocked: false,
-            approved: 'Approved',
-            active: true
-          }).select('-students -isBlocked -active -approved');
+            $and: [
+              {
+                $expr: {
+                  $in: [
+                    catSlug?.slug,
+                    {
+                      $map: {
+                        input: "$category",
+                        as: "cat",
+                        in: {
+                          $replaceAll: {
+                            input: { $toLower: "$$cat" },
+                            find: " ",
+                            replacement: ""
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              { isBlocked: false },
+              { approved: 'Approved' },
+              { active: true }
+            ]
+          }).select('-students -isBlocked -active -approved').sort({ createdAt: -1 });
+          
         const coursesWithRatings = await calculateAverageCourseRating(courses);
 
         res.status(200).json({ success: true, data: coursesWithRatings })

@@ -1,3 +1,5 @@
+/**
+ * 
 const syllabus = [
     {
         period: "Week 1",
@@ -12,6 +14,18 @@ const syllabus = [
             { progress: "Completed Chapter 2" }
         ]
     }
+]
+
+ */
+
+const syllabus = [
+  {
+    period: "Week 1", 
+    milestone: [
+      {progress: "topic 1"},
+      {progress: "topic 1"},
+    ]
+  }
 ]
 
 function validateSyllabus(syllabus) {
