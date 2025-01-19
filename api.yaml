@@ -1318,3 +1318,28 @@ paths:
         500: 
           description: Server error
 
+  /general:
+    post:
+      summary: Course chat endpoint use socket.io connections
+      description: Endpoint to chat with other student in a course socket.io('courseGroupChat', data) socket.emit('courseGroupChat', data)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - courseSlug
+              - message
+            properties:
+              courseSlug:
+                type: string
+              message: 
+                type: string
+      responses:
+        201: 
+          description: success - true data - [ arrray of chats ]
+        400:
+          description: User error
+        500: 
+          description: Server error

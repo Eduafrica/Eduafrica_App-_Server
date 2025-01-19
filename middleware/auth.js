@@ -274,3 +274,70 @@ export const InstructorsOrAdminProtect = async (req, res, next) => {
     return res.status(403).json({ success: false, data: 'User forbidden. Please login.' });
   }
 };
+
+//socket.io auth middleware
+export const AuthenticateStudentSocket = async (socket, next) => {
+  console.log('Authenticating student socket:', socket.id)
+  try {
+      const cookies = socket.handshake.headers.cookie || '';  // Safeguard for missing cookies
+      if (!cookies) {
+          console.log('No cookies received');
+          return next(new Error('No cookies provided'));
+      }
+
+      const parseCookies = (cookieString) => {
+          return cookieString.split(';').reduce((acc, cookie) => {
+              const [key, value] = cookie.trim().split('=');
+              acc[key] = decodeURIComponent(value);
+              return acc;
+          }, {});
+      };
+
+      const cookieObj = parseCookies(cookies);
+      const accessToken = cookieObj['edtechafric'];
+
+      //console.log('Cookies:', cookies);
+      console.log('AccessToken:', accessToken);
+
+      if (accessToken) {
+          try {
+              const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+              console.log('Decoded token:', decoded);
+
+              let user
+              if (decoded.userType === 'student') {
+                  user = await StudentModel.findById(id);
+                  if (user) {
+                      socket.user = user;
+                      return next();
+                  }
+              }
+              if (decoded.userType === 'instructor') {
+                user = await InstructorModel.findById(id);
+                if (user) {
+                    socket.user = user;
+                    return next();
+                }
+            }
+            if (decoded.userType === 'organization') {
+              user = await organizationModel.findById(id);
+              if (user) {
+                  socket.user = user;
+                  return next();
+              }
+            }
+              console.log('Invalid access token')
+              return next(new Error('Invalid access token'));
+          } catch (error) {
+              console.error('Token verification error:', error);
+              return next(new Error('Token expired or invalid'));
+          }
+      }
+
+
+      return next(new Error('Unauthenticated'));
+  } catch (error) {
+      console.error('Authentication error:', error);
+      return next(new Error('Server error during authentication'));
+  }
+};

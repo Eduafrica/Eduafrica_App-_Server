@@ -86,7 +86,7 @@ app.use('/api-doc', swaggerUI.serve, swaggerUI.setup(swaggerJSDocs));
 // Import DB connection
 import './connection/db.js';
 import { aiChat } from "./controllers/aichat.controllers.js";
-import { ChatId } from "./middleware/auth.js";
+import { AuthenticateStudentSocket, ChatId } from "./middleware/auth.js";
 
 // Routes
 app.get('/', (req, res) => {
@@ -137,6 +137,42 @@ io.use((socket, next) => {
       console.log('User disconnected:', socket.id);
     });
   });
+
+  //SOCKET FUNCTIONS IMPORTS
+  import * as courseChatsController from './controllers/courseChat.js';
+
+  // Namespaces
+const generalNamespace = io.of('/general');
+
+export const accountConnections = new Map()
+// Apply socket-specific authentication middleware for General
+generalNamespace.use(AuthenticateStudentSocket);
+generalNamespace.on('connection', (socket) => {
+  console.log('Genearl Socket Connected connected:', socket.id);
+  const { instructorID } = socket.user
+  const { organisationID } = socket.user
+
+
+  if(instructorID){
+    accountConnections.set(instructorID, socket.id)
+  }
+  if(organisationID){
+    accountConnections.set(organisationID, socket.id)
+  }
+
+  socket.on('courseGroupChat', (data) => courseChatsController.courseGroupChat({ data, socket }));
+
+  socket.on('disconnect', () => {
+    console.log('General Socket disconnected:', socket.id);
+    if(instructorID){
+        accountConnections.delete(instructorID)
+    }
+    if(organisationID){
+        accountConnections.delete(organisationID)
+    }
+  });
+});
+
 
 
 // Start server with socket
