@@ -5,7 +5,7 @@ import CourseContentModel from "../models/CourseContent.js"
 //new chat
 export async function courseGroupChat({ data, socket, res }) {
     const { courseSlug, message } = data
-    const { studentID, organisationID, instructorID, name, profileImg } = socket.user
+    const { studentID, organisationID, instructorID, staffID, name, profileImg, accountType } = socket.user
     console.log('SOCKET CHAT DATA', data)
     try {
         let getCourse 
@@ -68,6 +68,7 @@ export async function courseGroupChat({ data, socket, res }) {
             studentName: studentID ? name : '',
             instructorName: studentID ? '' : name,
             profileImg: profileImg,
+            admin: accountType === 'admin' ? true : false,
         })
         await getCourse.save()
         console.log('getCourse.chats', getCourse.chats)

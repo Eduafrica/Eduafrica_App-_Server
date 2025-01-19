@@ -86,7 +86,7 @@ app.use('/api-doc', swaggerUI.serve, swaggerUI.setup(swaggerJSDocs));
 // Import DB connection
 import './connection/db.js';
 import { aiChat } from "./controllers/aichat.controllers.js";
-import { AuthenticateStudentSocket, ChatId } from "./middleware/auth.js";
+import { AuthenticateGeneralSocket, ChatId } from "./middleware/auth.js";
 
 // Routes
 app.get('/', (req, res) => {
@@ -146,11 +146,13 @@ const generalNamespace = io.of('/general');
 
 export const accountConnections = new Map()
 // Apply socket-specific authentication middleware for General
-generalNamespace.use(AuthenticateStudentSocket);
+generalNamespace.use(AuthenticateGeneralSocket);
 generalNamespace.on('connection', (socket) => {
-  console.log('Genearl Socket Connected connected:', socket.id);
+  console.log('General Socket Connected connected:', socket.id);
   const { instructorID } = socket.user
   const { organisationID } = socket.user
+  const { staffID } = socket.user
+
 
 
   if(instructorID){
@@ -158,6 +160,9 @@ generalNamespace.on('connection', (socket) => {
   }
   if(organisationID){
     accountConnections.set(organisationID, socket.id)
+  }
+  if(staffID){
+    accountConnections.set(staffID, socket.id)
   }
 
   socket.on('courseGroupChat', (data) => courseChatsController.courseGroupChat({ data, socket }));
@@ -170,6 +175,9 @@ generalNamespace.on('connection', (socket) => {
     if(organisationID){
         accountConnections.delete(organisationID)
     }
+    if(staffID){
+      accountConnections.delete(staffID)
+  }
   });
 });
 

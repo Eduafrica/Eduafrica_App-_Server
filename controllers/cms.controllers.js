@@ -1,4 +1,8 @@
+import sendEmail from "../middleware/mailer.js";
 import CmsModel from "../models/cms.js";
+import InstructorModel from "../models/Instructors.js";
+import organizationModel from "../models/Organization.js";
+import StudentModel from "../models/Student.js";
 
 //CREATE NEW CMS
 export async function newCms(req, res) {
@@ -10,11 +14,18 @@ export async function newCms(req, res) {
     if(!message){
         return res.status(400).json({ success: false, data: 'Provide a message'})
     }
-    if(!message){
-        return res.status(400).json({ success: false, data: 'Provide a message'})
-    }
     if(!type){
         return res.status(400).json({ success: false, data: 'Provide a message'})
+    }
+    if(!['pushnotification', 'promotionalmail'].includes(type)){
+        return res.status(400).json({ success: false, data: 'CMS type must be either "pushnotification" or "promotionalmail"'})
+    }
+    if(!status){
+        return res.status(400).json({ success: false, data: 'Provide a CMS status'})
+    }
+    console.log('type', type)
+    if(!['Draft', 'Scheduled', 'Published'].includes(status)){
+        return res.status(400).json({ success: false, data: 'CMS status must be either "Draft" or "Scheduled" or "Published"'})
     }
     if(!accountType){
         return res.status(400).json({ success: false, data: 'Provide a message'})
@@ -73,6 +84,78 @@ export async function newCms(req, res) {
         // Save the CMS document
         await newCms.save();
 
+        //send mail notifications
+        if(status === 'Published' && type === 'promotionalmail'){
+            //send mail notifications
+            let recipients = [];
+            if (accountType === 'student') {
+                const students = await StudentModel.find({}, 'email name'); // Fetch emails and names
+                recipients = students.map(student => ({ email: student.email, name: student.name || '' }));
+            } else if (accountType === 'instructor') {
+                const instructors = await InstructorModel.find({}, 'email name'); // Fetch emails and names
+                recipients = instructors.map(instructor => ({ email: instructor.email, name: instructor.name || '' }));
+            } else if (accountType === 'organization') {
+                const instructors = await organizationModel.find({}, 'email name'); // Fetch emails and names
+                recipients = instructors.map(instructor => ({ email: instructor.email, name: instructor.name || '' }));
+            } else if (accountType === 'allUsers') {
+                const students = await StudentModel.find({}, 'email name');
+                const instructors = await InstructorModel.find({}, 'email name');
+                const organizations = await organizationModel.find({}, 'email name');
+                recipients = [
+                    ...students.map(student => ({ email: student.email, name: student.name || '' })),
+                    ...instructors.map(instructor => ({ email: instructor.email, name: instructor.name || '' })),
+                    ...organizations.map(organization => ({ email: organization.email, name: organization.name || '' })),
+                ];
+            } else if (accountType === 'custom') {
+                recipients = users.map(email => ({ email, name: '' })); // Use custom emails
+            }
+
+            // Send emails
+            const emailLogoUrl = 'https://i.ibb.co/Yf12g4d/logo.png'; // Replace with your logo URL
+            const twUrl = 'https://i.ibb.co/TrkW705/Vector.png'; //
+            const fbUrl = 'https://i.ibb.co/Qd51cS7/Vector.png'; //
+            const igUrl = 'https://i.ibb.co/BwXQBCr/Social-icon.png'; //
+            const currentYear = new Date().getFullYear();
+    
+            for (const recipient of recipients) {
+                const emailContent = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+                        <div style="display: flex; align-items: left; margin-bottom: 20px;">
+                            <img src="${emailLogoUrl}" alt="Logo" style="width: 100px; height: auto; margin-right: 20px;">
+                        </div>
+                        <br />
+                        <p>Hi, ${recipient.name || ''},</p>
+                        ${caption && `<p style="font-size: 19px; color: #00BF63;">${caption}</p>`}
+                        <br />
+                        <p style="color: #344054;">${message}</p>
+                        ${image ? `<div><img src="${image}" alt="Promotional Image" style="max-width: 100%; height: auto; margin-top: 20px;"></div>` : ''}
+                        <br />
+                        ${url && `<a href=${url} style="background-color: #00BF63; color: #fff; width: 100% border-radius: 10px; padding: 16px; text-decoration: none;">Visit</a>`}
+                        <footer style="margin-top: 20px; font-size: 12px; color: #344054;">
+                            <p style="text-decoration: none;">This email was sent to <span style="color: #00BF63;">${recipient.email}</span>. If you'd rather not receive this kind of email, you can <span style="color: #00BF63;" >unsubscribe</span> or <span style="color: #00BF63;">manage your email preferences.</span></p>
+                            <p>© ${currentYear} EduAfrica</p>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+                                <img src="${emailLogoUrl}" alt="Logo" style="width: 100px; height: auto;">
+                                <div style="display: flex; align-items: center; gap: 8px;>
+                                    <img src="${twUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
+                                    <img src="${fbUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
+                                    <img src="${igUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                `;
+    
+                // Send email
+                sendEmail({
+                    to: recipient.email,
+                    subject: title,
+                    text: emailContent,
+                });
+            }
+        }
+
+
         return res.status(201).json({ success: true, data: 'CMS message created successfully' });
     } catch (error) {
         console.log('UNABLE TO CREATE NEW CMS MESSAGE', error);
@@ -84,7 +167,7 @@ export async function newCms(req, res) {
 
 //UPDATE CMS
 export async function updateCms(req, res) {
-    const { _id, title, message, type, status, image, scheduled, url, caption, users, allUsers } = req.body;
+    const { _id, title, message, type, status, image, scheduled, url, caption, users, allUsers, accountType } = req.body;
     try {
         const updateCms = await CmsModel.findById({ _id: _id });
 
@@ -101,13 +184,15 @@ export async function updateCms(req, res) {
                 status,
                 image,
                 scheduled,
-                users,
+                accountType,
+                users: accountType !== 'custom' ? [] : users?.length > 0 ? users : updateCms?.users ,
                 allUsers,
                 url,
                 caption
             },
             { new: true }
         );
+        await editCms.save()
         const timeData = req.body.scheduledDate[0]
         const { day, time, date } = timeData
 
@@ -165,6 +250,78 @@ export async function updateCms(req, res) {
 
         // Update the CMS document
         await updateCms.save();
+
+                //send mail notifications
+                if(updateCms?.status === 'Published' && updateCms?.type === 'promotionalmail'){
+                    //send mail notifications
+                    let recipients = [];
+                    if (updateCms?.accountType === 'student') {
+                        const students = await StudentModel.find({}, 'email name'); // Fetch emails and names
+                        recipients = students.map(student => ({ email: student.email, name: student.name || '' }));
+                    } else if (updateCms?.accountType === 'instructor') {
+                        const instructors = await InstructorModel.find({}, 'email name'); // Fetch emails and names
+                        recipients = instructors.map(instructor => ({ email: instructor.email, name: instructor.name || '' }));
+                    } else if (updateCms?.accountType === 'organization') {
+                        const instructors = await organizationModel.find({}, 'email name'); // Fetch emails and names
+                        recipients = instructors.map(instructor => ({ email: instructor.email, name: instructor.name || '' }));
+                    } else if (updateCms?.accountType === 'allUsers') {
+                        const students = await StudentModel.find({}, 'email name');
+                        const instructors = await InstructorModel.find({}, 'email name');
+                        const organizations = await organizationModel.find({}, 'email name');
+                        recipients = [
+                            ...students.map(student => ({ email: student.email, name: student.name || '' })),
+                            ...instructors.map(instructor => ({ email: instructor.email, name: instructor.name || '' })),
+                            ...organizations.map(organization => ({ email: organization.email, name: organization.name || '' })),
+                        ];
+                    } else if (updateCms?.accountType === 'custom') {
+                        recipients = editCms?.users.map(email => ({ email, name: '' })); // Use custom emails
+                    }
+        
+                    // Send emails
+                    const emailLogoUrl = 'https://i.ibb.co/Yf12g4d/logo.png'; // Replace with your logo URL
+                    const twUrl = 'https://i.ibb.co/TrkW705/Vector.png'; //
+                    const fbUrl = 'https://i.ibb.co/Qd51cS7/Vector.png'; //
+                    const igUrl = 'https://i.ibb.co/BwXQBCr/Social-icon.png'; //
+                    const currentYear = new Date().getFullYear();
+                    console.log('editCms',editCms)
+                    for (const recipient of recipients) {
+                        const emailContent = `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+                                <div style="display: flex; align-items: left; margin-bottom: 20px;">
+                                    <img src="${emailLogoUrl}" alt="Logo" style="width: 100px; height: auto; margin-right: 20px;">
+                                </div>
+                                <br />
+                                <p>Hi, ${recipient.name || ''},</p>
+                                ${editCms?.caption && `<p style="font-size: 19px; color: #00BF63;">${editCms?.caption}</p>`}
+                                <br />
+                                <p style="color: #344054; font-size: 17px;">${editCms?.message}</p>
+                                ${editCms?.image ? `<div><img src="${editCms?.image}" alt="Promotional Image" style="max-width: 100%; height: auto; margin-top: 20px;"></div>` : ''}
+                                <br />
+                                ${editCms?.url && `<a href=${editCms?.url} style="background-color: #00BF63; color: #fff; width: 100% border-radius: 10px; padding: 16px; text-decoration: none;">Visit</a>`}
+                                <footer style="margin-top: 20px; font-size: 12px; color: #344054;">
+                                    <p style="text-decoration: none;">This email was sent to <span style="color: #00BF63;">${recipient.email}</span>. If you'd rather not receive this kind of email, you can <span style="color: #00BF63;" >unsubscribe</span> or <span style="color: #00BF63;">manage your email preferences.</span></p>
+                                    <p>© ${currentYear} EduAfrica</p>
+                                    <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+                                        <img src="${emailLogoUrl}" alt="Logo" style="width: 100px; height: auto;">
+                                        <div style="display: flex; align-items: center; gap: 8px;>
+                                            <img src="${twUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
+                                            <img src="${fbUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
+                                            <img src="${igUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
+                                        </div>
+                                    </div>
+                                </footer>
+                            </div>
+                        `;
+            
+                        // Send email
+                        sendEmail({
+                            to: recipient.email,
+                            subject: title,
+                            text: emailContent,
+                        });
+                    }
+                }
+        
 
         return res.status(201).json({ success: true, data: 'CMS message updated successfully' });
     } catch (error) {

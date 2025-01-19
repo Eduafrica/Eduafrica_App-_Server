@@ -276,7 +276,7 @@ export const InstructorsOrAdminProtect = async (req, res, next) => {
 };
 
 //socket.io auth middleware
-export const AuthenticateStudentSocket = async (socket, next) => {
+export const AuthenticateGeneralSocket = async (socket, next) => {
   console.log('Authenticating student socket:', socket.id)
   try {
       const cookies = socket.handshake.headers.cookie || '';  // Safeguard for missing cookies
@@ -295,37 +295,27 @@ export const AuthenticateStudentSocket = async (socket, next) => {
 
       const cookieObj = parseCookies(cookies);
       const accessToken = cookieObj['edtechafric'];
+      const adminAccessToken = cookieObj['edtechafricauth'];
+
 
       //console.log('Cookies:', cookies);
-      console.log('AccessToken:', accessToken);
+      console.log('AccessToken:', accessToken, 'AdminAccessToken', adminAccessToken);
 
-      if (accessToken) {
+      if (adminAccessToken) {
           try {
-              const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+              const decoded = jsonwebtoken.verify(adminAccessToken, process.env.JWT_SECRET);
               console.log('Decoded token:', decoded);
 
               let user
-              if (decoded.userType === 'student') {
-                  user = await StudentModel.findById(id);
+              if (decoded.accountType === 'admin') {
+                  user = await AdminModel.findById(decoded.id);
                   if (user) {
-                      socket.user = user;
+                      const userData = { ...user, name: `${user?.firstName} ${user?.lastName}`, admin: true };
+                      socket.user = userData;
                       return next();
                   }
               }
-              if (decoded.userType === 'instructor') {
-                user = await InstructorModel.findById(id);
-                if (user) {
-                    socket.user = user;
-                    return next();
-                }
-            }
-            if (decoded.userType === 'organization') {
-              user = await organizationModel.findById(id);
-              if (user) {
-                  socket.user = user;
-                  return next();
-              }
-            }
+
               console.log('Invalid access token')
               return next(new Error('Invalid access token'));
           } catch (error) {
@@ -333,6 +323,41 @@ export const AuthenticateStudentSocket = async (socket, next) => {
               return next(new Error('Token expired or invalid'));
           }
       }
+
+      if (accessToken) {
+        try {
+            const decoded = jsonwebtoken.verify(accessToken, process.env.JWT_SECRET);
+            console.log('Decoded token:', decoded);
+
+            let user
+            if (decoded.userType === 'student') {
+                user = await StudentModel.findById(decoded.id);
+                if (user) {
+                    socket.user = user;
+                    return next();
+                }
+            }
+            if (decoded.userType === 'instructor') {
+              user = await InstructorModel.findById(decoded.id);
+              if (user) {
+                  socket.user = user;
+                  return next();
+              }
+          }
+          if (decoded.userType === 'organization') {
+            user = await organizationModel.findById(decoded.id);
+            if (user) {
+                socket.user = user;
+                return next();
+            }
+          }
+            console.log('Invalid access token')
+            return next(new Error('Invalid access token'));
+        } catch (error) {
+            console.error('Token verification error:', error);
+            return next(new Error('Token expired or invalid'));
+        }
+    }
 
 
       return next(new Error('Unauthenticated'));

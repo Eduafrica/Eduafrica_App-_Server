@@ -232,6 +232,7 @@ export async function newOrder(req, res) {
         })
 
         //CREATE ORDER FORM HERE FOR STUDENT NOT IN NIGERIA
+        console.log('object', country)
         if(country.toLowerCase() !== 'nigeria'){
             return res.status(201).json({ 
                                             success: true, 
