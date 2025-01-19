@@ -85,7 +85,7 @@ export async function updateCourse(req, res) {
     const { _id, title, instructorName, about, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus } = req.body
     const { _id: courseOnwerId } = req.user
     try {
-        const getCourse = await CourseModel.findById({ _id: id })
+        const getCourse = await CourseModel.findById({ _id: _id })
         if(!getCourse){
             return res.status(404).json({ success: false, data: 'No course with this ID' })
         }
@@ -94,15 +94,31 @@ export async function updateCourse(req, res) {
             return res.status(403).json({ success: false, data: 'Not allowed: Permission Denied' });
         }
 
+        const updateFields = {};
+
+        if (title) updateFields.title = title;
+        if (about) updateFields.about = about;
+        if (instructorName) updateFields.instructorName = instructorName;
+        if (desc) updateFields.desc = desc;
+        if (overview) updateFields.overview = overview;
+        if (category) updateFields.category = category;
+        if (price) updateFields.price = price;
+        if (priceCurrency) updateFields.priceCurrency = priceCurrency;
+        if (isDiscountAllowed !== undefined) updateFields.isDiscountAllowed = isDiscountAllowed;  // For booleans or flags
+        if (discountPercentage) updateFields.discountPercentage = discountPercentage;
+        if (coverImage) updateFields.coverImage = coverImage;
+        if (studentLevel) updateFields.studentLevel = studentLevel;
+        if (skillsToGain) updateFields.skillsToGain = skillsToGain;
+        if (language) updateFields.language = language;
+        if (faq) updateFields.faq = faq;
+        if (syllabus) updateFields.syllabus = syllabus;
+
+
         const findCourse = await CourseModel.findByIdAndUpdate(
             _id, 
-            {
-                $set: {
-                    title, about, instructorName, desc, overview, category, price, priceCurrency, isDiscountAllowed, discountPercentage, coverImage, studentLevel, skillsToGain, language, faq, syllabus
-                }
-            },
+            { $set: updateFields },
             { new: true }
-        )     
+        );
 
         return res.status(200).json({ success: true, data: findCourse })
     } catch (error) {
