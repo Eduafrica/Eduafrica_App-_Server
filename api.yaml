@@ -1321,7 +1321,7 @@ paths:
   /general:
     post:
       summary: Course chat endpoint use socket.io connections
-      description: Endpoint to chat with other student in a course socket.io('courseGroupChat', data) socket.emit('courseGroupChat', data)
+      description: Endpoint to chat with other student in a course socket.io('courseGroupChat', data) socket.emit('courseGroupChat', data) both student and course owner can chat in this course chats.
       parameters:
         - name: body
           in: body
