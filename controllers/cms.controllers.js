@@ -291,7 +291,7 @@ export async function updateCms(req, res) {
                                     <img src="${emailLogoUrl}" alt="Logo" style="width: 100px; height: auto; margin-right: 20px;">
                                 </div>
                                 <br />
-                                <p>Hi, ${recipient.name || ''},</p>
+                                <p>Hi ${recipient.name || ''},</p>
                                 ${editCms?.caption && `<p style="font-size: 19px; color: #00BF63;">${editCms?.caption}</p>`}
                                 <br />
                                 <p style="color: #344054; font-size: 17px;">${editCms?.message}</p>
@@ -299,11 +299,11 @@ export async function updateCms(req, res) {
                                 <br />
                                 ${editCms?.url && `<a href=${editCms?.url} style="background-color: #00BF63; color: #fff; width: 100% border-radius: 10px; padding: 16px; text-decoration: none;">Visit</a>`}
                                 <footer style="margin-top: 20px; font-size: 12px; color: #344054;">
-                                    <p style="text-decoration: none;">This email was sent to <span style="color: #00BF63;">${recipient.email}</span>. If you'd rather not receive this kind of email, you can <span style="color: #00BF63;" >unsubscribe</span> or <span style="color: #00BF63;">manage your email preferences.</span></p>
+                                    <p style="text-decoration: none; color: #344054;">This email was sent to <span style="color: #00BF63;">${recipient.email}</span>. If you'd rather not receive this kind of email, you can <span style="color: #00BF63;" >unsubscribe</span> or <span style="color: #00BF63;">manage your email preferences.</span></p>
                                     <p>© ${currentYear} EduAfrica</p>
                                     <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
                                         <img src="${emailLogoUrl}" alt="Logo" style="width: 100px; height: auto;">
-                                        <div style="display: flex; align-items: center; gap: 8px;>
+                                        <div style="display: flex; align-items: center; flex-direction: row; gap: 8px;>
                                             <img src="${twUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
                                             <img src="${fbUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
                                             <img src="${igUrl}" alt="Social Media Icons" style="width: 20px; height: auto;">
