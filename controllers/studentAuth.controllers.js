@@ -483,6 +483,56 @@ export async function updatePaymentCard(req, res) {
     }
 }
 
+//GET A CARD
+export async function getAPaymentCard(req, res) {
+    const { userId: _id } = req.user
+
+    try {
+        const cardDetails = await CardDeatilsModel.findOne({ userId });
+
+        if (!cardDetails) {
+          return res.status(404).json({ success: false, data: 'Card details not found' });
+        }
+
+        const card = cardDetails.card._id(req.params._id);
+
+        if (!card) {
+          return res.status(404).json({ success: false, data: 'Card not found' });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: card
+        });
+    
+    } catch (error) {
+        console.log('UNABLE TO GET CARD DETAIL', error)
+        res.status(500).json({ success: false, data: 'Unable to get card detail' })
+    }
+}
+
+//GET CARD
+export async function getPaymentCard(req, res) {
+    const { userId: _id } = req.user
+
+    try {
+        const cardDetails = await CardDeatilsModel.findOne({ userId });
+
+        if (!cardDetails) {
+          return res.status(404).json({ success: false, data: 'Card details not found' });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: cardDetails
+        });
+    
+    } catch (error) {
+        console.log('UNABLE TO GET CARD DETAIL', error)
+        res.status(500).json({ success: false, data: 'Unable to get card detail' })
+    }
+}
+
 //DELETE CARD DETAILS
 export async function deletePaymentCard(req, res) {
     const { userId: _id } = req.user

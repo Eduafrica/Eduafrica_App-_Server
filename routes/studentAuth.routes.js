@@ -25,6 +25,10 @@ router.get('/getStudentAllCourse', Protect, controllers.getStudentAllCourse )
 router.get('/getAllStudent', AdminProtect, controllers.getAllStudent)
 router.get('/getStudent/:_id', AdminProtect, controllers.getStudent)
 router.get('/getStudentStats/:stats', AdminProtect, controllers.getStudentStats)
+
+router.get('/getPaymentCard', AdminProtect, controllers.getPaymentCard)
+router.get('/getAPaymentCard/:_id', AdminProtect, controllers.getAPaymentCard)
+
 //PUT ROUTES
 
 export default router
