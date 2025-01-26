@@ -157,7 +157,7 @@ export async function rateACourse(req, res) {
         findCourse.ratings.push(data)
         await findCourse.save()
 
-        res.status.json({ success: true, data: 'Course review added' })
+        res.status(200).json({ success: true, data: 'Course review added' })
     } catch (error) {
         console.log('UNABLE TO RATE A COURSE', error)
         res.status(500).json({ success: false, data: 'Unable to add ratings' })
