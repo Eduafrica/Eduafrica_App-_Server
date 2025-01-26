@@ -122,3 +122,66 @@ export async function sendNotification(req, res) {
         res.status(500).json({ success: false, data: 'Unable to send push notifications' });
     }
 }
+
+export async function sendNotificationById(cmsId) {
+    try {
+        // Find the CMS data by ID
+        const cmsData = await CmsModel.findById(cmsId).exec();
+        if (!cmsData) {
+            console.error(`No CMS data found with ID: ${cmsId}`);
+            return { success: false, message: 'CMS data not found.' };
+        }
+
+        const { accountType, message, title, allUsers, users, url, image } = cmsData;
+
+        let query = {};
+
+        if (accountType === 'allUser') {
+            // Send to all users
+            query = {};
+        } else if (accountType === 'custom') {
+            // Send to users in the CMS users array
+            query = { 'user.email': { $in: users } };
+        } else {
+            // Send to specific account type (student, instructor, organization)
+            query = { 'user.accountType': accountType };
+        }
+
+        // Fetch matching subscribers from the PushNotificationModel
+        const pushSubscribers = await PushNotificationModel.find(query).exec();
+
+        if (!pushSubscribers.length) {
+            console.error('No subscribers found for the specified query.');
+            return { success: false, message: 'No subscribers found.' };
+        }
+
+        // Send notifications to each subscriber
+        for (const subscriber of pushSubscribers) {
+            for (const user of subscriber.user) {
+                const { email, data } = user;
+
+                // Ensure the subscription object exists
+                if (data && data.endpoint) {
+                    const notificationPayload = JSON.stringify({
+                        title,
+                        message,
+                        url,   // Optional: Use CMS URL if provided
+                        image, // Optional: Use CMS image if provided
+                    });
+
+                    try {
+                        await webpush.sendNotification(data, notificationPayload);
+                        console.log(`Notification sent to ${email}`);
+                    } catch (error) {
+                        console.error(`Failed to send notification to ${email}`, error);
+                    }
+                }
+            }
+        }
+
+        return { success: true, message: 'Notifications sent successfully.' };
+    } catch (error) {
+        console.error('UNABLE TO SEND NOTIFICATIONS', error);
+        return { success: false, message: 'Unable to send push notifications.' };
+    }
+}

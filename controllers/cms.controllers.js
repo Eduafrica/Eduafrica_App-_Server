@@ -3,6 +3,7 @@ import CmsModel from "../models/cms.js";
 import InstructorModel from "../models/Instructors.js";
 import organizationModel from "../models/Organization.js";
 import StudentModel from "../models/Student.js";
+import { sendNotificationById } from "./pushNotification.controllers.js";
 
 //CREATE NEW CMS
 export async function newCms(req, res) {
@@ -155,6 +156,13 @@ export async function newCms(req, res) {
             }
         }
 
+        //send push notificatio
+        if(status === 'Published' && type === 'pushnotification'){
+            const cmsId = newCms._id; // CMS ID
+            const sendPushNotification = await sendNotificationById(cmsId);
+            console.log(sendPushNotification);
+        }
+
 
         return res.status(201).json({ success: true, data: 'CMS message created successfully' });
     } catch (error) {
@@ -162,8 +170,6 @@ export async function newCms(req, res) {
         res.status(500).json({ success: false, data: 'Unable to create a new CMS message' });
     }
 }
-
-//HANDLE SCHEDULED CMS
 
 //UPDATE CMS
 export async function updateCms(req, res) {
@@ -194,9 +200,10 @@ export async function updateCms(req, res) {
         );
         await editCms.save()
         const timeData = req.body.scheduledDate[0]
-        const { day, time, date } = timeData
-
+        console.log('object', editCms?.type)
+        
         if (status === "Scheduled") {
+            const { day, time, date } = timeData
             if (!editCms.scheduledDate[0].day) {
                 return res.status(400).json({ success: false, data: 'Provide day' });
             }
@@ -321,6 +328,13 @@ export async function updateCms(req, res) {
                         });
                     }
                 }
+
+        //send push notification
+        if(updateCms.status === 'Published' && updateCms.type === 'pushnotification'){
+            const cmsId = updateCms._id; // CMS ID
+            const sendPushNotification = await sendNotificationById(cmsId);
+            console.log('sendPushNotification data', sendPushNotification);
+        }
         
 
         return res.status(201).json({ success: true, data: 'CMS message updated successfully' });

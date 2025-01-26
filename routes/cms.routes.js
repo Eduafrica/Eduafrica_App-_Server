@@ -9,7 +9,7 @@ router.post('/updateCms', AdminProtect, controllers.updateCms)
 router.post('/deleteCms', AdminProtect, controllers.deleteCms)
 
 //GET ROUTES
-router.get('/getAllCms', AdminProtect, controllers.getAllCms)
+router.get('/getAllCms', controllers.getAllCms)
 router.get('/getCms/:id', AdminProtect, controllers.getCms)
 
 

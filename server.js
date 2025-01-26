@@ -181,7 +181,8 @@ generalNamespace.on('connection', (socket) => {
   });
 });
 
-
+//utils imports
+import './controllers/scheduleCms.controllers.js'
 
 // Start server with socket
 const PORT = process.env.PORT || 9000;
