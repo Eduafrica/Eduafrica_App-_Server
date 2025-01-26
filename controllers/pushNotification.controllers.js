@@ -185,3 +185,44 @@ export async function sendNotificationById(cmsId) {
         return { success: false, message: 'Unable to send push notifications.' };
     }
 }
+
+export async function sendCustomNotification(message, email) {
+    try {
+        // Find the user in the PushNotificationModel by email
+        const pushSubscribers = await PushNotificationModel.find({ 'user.email': email }).exec();
+
+        if (!pushSubscribers.length) {
+            console.error(`No subscriber found with email: ${email}`);
+            return { success: false, message: 'Subscriber not found.' };
+        }
+
+        // Send the notification to the matching subscriber(s)
+        for (const subscriber of pushSubscribers) {
+            for (const user of subscriber.user) {
+                if (user.email === email) {
+                    const { data } = user;
+
+                    // Ensure the subscription object exists
+                    if (data && data.endpoint) {
+                        const notificationPayload = JSON.stringify({
+                            title: 'Learning Reminder', // You can customize the title as needed
+                            message,                   // The message passed as a parameter
+                        });
+
+                        try {
+                            await webpush.sendNotification(data, notificationPayload);
+                            console.log(`Notification sent to ${email}`);
+                        } catch (error) {
+                            console.error(`Failed to send notification to ${email}`, error);
+                        }
+                    }
+                }
+            }
+        }
+
+        return { success: true, message: 'Notification sent successfully.' };
+    } catch (error) {
+        console.error('UNABLE TO SEND NOTIFICATION', error);
+        return { success: false, message: 'Unable to send push notification.' };
+    }
+}

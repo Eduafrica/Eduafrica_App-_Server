@@ -26,6 +26,8 @@ import couponRoute from './routes/couponCode.routes.js';
 import pushNotificationRoute from './routes/pushNotification.routes.js';
 import advertRoute from './routes/advert.routes.js';
 import dashboardRoute from './routes/dashboard.routes.js';
+import payoutRoute from './routes/payout.routes.js';
+
 
 
 // CORS setup
@@ -109,6 +111,8 @@ app.use('/api/coupon', couponRoute)
 app.use('/api/pushNotification', pushNotificationRoute)
 app.use('/api/advert', advertRoute)
 app.use('/api/dashboard', dashboardRoute)
+app.use('/api/payout', payoutRoute)
+
 
 
 

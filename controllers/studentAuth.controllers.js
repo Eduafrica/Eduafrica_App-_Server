@@ -8,6 +8,9 @@ import Mailgen from "mailgen";
 import crypto from 'crypto'
 import CardDeatilsModel from "../models/CardDetails.js";
 import moment from 'moment';
+import cron from 'node-cron';
+import { sendCustomNotification } from "./pushNotification.controllers.js";
+
 const mailGenerator = new Mailgen({
     theme: 'default',
     product: {
@@ -515,31 +518,40 @@ export async function setLearningReminder(req, res) {
     const { _id } = req.user;
     const { day, time } = req.body;
 
-    if(!day){
-        return res.status(400).json({ success: false, data: 'Provide day'})
+    if (!day) {
+        return res.status(400).json({ success: false, data: 'Provide day' });
     }
 
-    if(!time){
-        return res.status(400).json({ success: false, data: 'Provide time'})
+    if (!time) {
+        return res.status(400).json({ success: false, data: 'Provide time' });
     }
 
     try {
-        // Validate time format
-        const timeRegex = /^([0-9]|1[0-2]):([0-5][0-9]) (AM|PM)$/;
+        // Validate time format (fixing the regex)
+        const timeRegex = /^(0[1-9]|1[0-2]):([0-5][0-9]) (AM|PM)$/;
         if (!timeRegex.test(time)) {
-            return res.status(400).json({ success: false, data: 'Invalid time format. Use E.G "09:15 AM" or "12:00 PM" format' });
+            return res.status(400).json({
+                success: false,
+                data: 'Invalid time format. Use E.G "09:15 AM" or "12:00 PM" format',
+            });
         }
 
         // Validate day of the week
         const validDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
         if (!validDays.includes(day)) {
-            return res.status(400).json({ success: false, data: 'Invalid day format. Use full day names, e.g., "Monday", "Tuesday".' });
+            return res.status(400).json({
+                success: false,
+                data: 'Invalid day format. Use full day names, e.g., "Monday", "Tuesday".',
+            });
         }
 
         // Find user and add the learning reminder
         const user = await StudentModel.findOne({ _id });
-        user.learningReminder.push({ day, time });
+        if (!user) {
+            return res.status(404).json({ success: false, data: 'User not found' });
+        }
 
+        user.learningReminder.push({ day, time });
         await user.save();
 
         return res.status(200).json({
@@ -548,7 +560,10 @@ export async function setLearningReminder(req, res) {
         });
     } catch (error) {
         console.log('Error adding learning reminder:', error);
-        return res.status(500).json({ success: false, data: 'Unable to set your reminder' });
+        return res.status(500).json({
+            success: false,
+            data: 'Unable to set your reminder',
+        });
     }
 }
 
@@ -587,24 +602,35 @@ export async function checkLearningReminders() {
         const currentDay = moment().format('dddd'); // e.g., 'Monday'
         const currentTime = moment().format('h:mm A'); // e.g., '9:00 AM'
 
-        users.forEach(user => {
+        // Loop through each user
+        for (const user of users) {
             // Loop through each user's learningReminder array
-            user.learningReminder.forEach(reminder => {
+            for (const reminder of user.learningReminder) {
                 const { day, time } = reminder;
-                
+
                 // Compare both the current day and time with the reminder's day and time
                 if (currentDay === day && currentTime === time) {
-                    console.log(`Reminder for user ${user.userId} on ${day} at ${time}`);
+                    const message = `Hello! This is your learning reminder for ${day} at ${time}.`;
+                    console.log(`Sending reminder to ${user.email}: ${message}`);
+
+                    // Send the push notification
+                    const response = await sendCustomNotification(message, user.email);
+                    if (response.success) {
+                        console.log(`Reminder notification sent to ${user.email}`);
+                    } else {
+                        console.error(`Failed to send reminder to ${user.email}: ${response.message}`);
+                    }
                 }
-            });
-        });
+            }
+        }
     } catch (error) {
         console.log('Error checking learning reminders:', error);
     }
 }
 
 // Run the check every minute (60 seconds)
-setInterval(checkLearningReminders, 60000);
+//setInterval(checkLearningReminders, 60000);
+cron.schedule('* * * * *', checkLearningReminders);
 
 //GET ALL STUDENT
 export async function getAllStudent(req, res) {
