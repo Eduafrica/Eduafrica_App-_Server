@@ -77,7 +77,7 @@ export async function newCms(req, res) {
         const newCms = await CmsModel.create({
             title, message, type, status, image, scheduled: status === "Scheduled" ? true : false, caption, url, users: accountType === 'custom' ? users : [] , accountType, allUsers: accountType === 'allUsers' ? true : false, author: `${firstName} ${lastName}`, authorID: _id
         });
-
+        console.log('DATE AND TIME', { day, time, date })
         // Push the scheduled information
         newCms.scheduledDate.push({ day, time, date });
 
