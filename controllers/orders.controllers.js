@@ -333,7 +333,7 @@ export async function verifyPaymentPaystackWebhook(req, res) {
           //increase student total by one in course model
           getCourse.studentsTotal += 1
           //add course payable price to owner earnings
-          getInstructor.totalTransaction += (getOrder?.payableAmount - commissionPrice)
+          getInstructor.totalTransaction += Number(getOrder?.payableAmount - commissionPrice)
           //add coupon code reduce by one if there is
           if(getCouponCode){
               getCouponCode.quantityUsed += 1
@@ -423,7 +423,7 @@ export async function updatePaymentStatus(req, res) {
             //reduce student total by one in course model
             getCourse.studentsTotal -= 1
             //subtract from course owner earnings
-            getInstructor.totalTransaction -= (getOrder?.payableAmount - commissionPrice)
+            getInstructor.totalTransaction -= Number(getOrder?.payableAmount - commissionPrice)
             //remove coupon code reduce by one if there is
             if(getCouponCode){
                 getCouponCode.quantityUsed -= 1
@@ -459,7 +459,7 @@ export async function updatePaymentStatus(req, res) {
             //increase student total by one in course model
             getCourse.studentsTotal += 1
             //add course payable price to owner earnings
-            getInstructor.totalTransaction += (getOrder?.payableAmount - commissionPrice)
+            getInstructor.totalTransaction += Number(getOrder?.payableAmount - commissionPrice)
             //add coupon code reduce by one if there is
             if(getCouponCode){
                 getCouponCode.quantityUsed += 1

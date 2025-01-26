@@ -5,6 +5,10 @@ const PayoutSchema = new mongoose.Schema({
         type: String,
         required: [ true, 'Instructor Id is required']
     },
+    instructorSlugcode: {
+        type: String,
+        required: [ true, 'Instructor slug code is required']
+    },
     amount: {
         type: Number,
         required: [ true, 'Payout amount is required' ]

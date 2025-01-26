@@ -1343,3 +1343,59 @@ paths:
           description: User error
         500: 
           description: Server error
+
+  /api/payout/newPayoutRequest:
+    post:
+      summary: Endpoint for payout request for instructor and organization
+      description: Endpoint to create a new payout request for either instructor or organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - amount
+              - bankName
+              - accountName
+              - accountNumber
+            properties:
+              amount:
+                type: number
+              bankName:
+                type: string
+              accountName:
+                type: string
+              accountNumber:
+                type: number
+      responses:
+        201: 
+          description: success
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/payout/getAInstructorPayoutRequest/:_id:
+    get:
+      summary: Gets a payout request of a instructor pass _id of the payout
+      description: Gets a payout request of a instructor
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/payout/getInstructorPayoutRequest:
+    get:
+      summary: Gets payout request of a instructor pass
+      description: Gets payout request of a instructor
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error

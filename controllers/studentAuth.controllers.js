@@ -593,11 +593,11 @@ export async function deleteLearningReminder(req, res) {
 }
 
 //CHECK FOR REMINDER DUE DATE AND TIME
-export async function checkLearningReminders() {
+async function checkLearningReminders() {
     try {
         // Get all users and their learningReminder arrays
         const users = await StudentModel.find({});
-
+        console.log('Checking for remiders for students')
         // Get the current day and time in the required format
         const currentDay = moment().format('dddd'); // e.g., 'Monday'
         const currentTime = moment().format('h:mm A'); // e.g., '9:00 AM'
