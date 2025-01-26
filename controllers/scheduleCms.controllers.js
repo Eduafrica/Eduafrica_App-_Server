@@ -110,7 +110,7 @@ async function checkAndSendScheduledPushNotification() {
 
 
         //send push notification
-        if(updateCms.status === 'Scheduled' && updateCms.type === 'pushnotification'){
+        if(scheduledPushNotifications.status === 'Scheduled' && updateCms.type === 'pushnotification'){
             const cmsId = pushNotification._id; // CMS ID
             const sendPushNotification = await sendNotificationById(cmsId);
             console.log('sendPushNotification data', sendPushNotification);
