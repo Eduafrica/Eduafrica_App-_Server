@@ -155,9 +155,9 @@ export const accountConnections = new Map()
 //generalNamespace.use(AuthenticateGeneralSocket);
 generalNamespace.on('connection', (socket) => {
   console.log('General Socket Connected connected:', socket.id);
-  const { instructorID } = socket.user
-  const { organisationID } = socket.user
-  const { staffID } = socket.user
+  const { instructorID } = socket.user || {}
+  const { organisationID } = socket.user || {}
+  const { staffID } = socket.user || {}
 
 
 
