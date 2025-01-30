@@ -437,6 +437,22 @@ export async function getOrganization(req, res) {
     }
 }
 
+//GET A INSTRUCTOR PROFILE
+export async function getOrganizationProfile(req, res) {
+    const { _id } = req.user
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Organization ID is required' })
+    }
+    try {
+        const getOrganization = await organizationModel.findById({ _id: _id }).select('-password')
+
+        res.status(200).json({ success: true, data: getOrganization })
+    } catch (error) {
+        console.log('UNABLE TO GET ORGANIZATION PROFILE', error)
+        res.status(500).json({ success: false, data: 'Uanble to get organization profile' })
+    }
+}
+
 //APPROVE AN ORGANIZATION FROM ADMIN
 
 //TOGGLE BLOCK ORGANIZATION

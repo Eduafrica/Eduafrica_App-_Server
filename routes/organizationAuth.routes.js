@@ -1,6 +1,6 @@
 import express from 'express'
 import * as controllers from '../controllers/organizationAuth.controllers.js'
-import { AdminProtect } from '../middleware/auth.js'
+import { AdminProtect, Protect } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -17,6 +17,8 @@ router.post('/toggleblock', AdminProtect, controllers.toggleblock)
 router.get('/getAllOrganizations', AdminProtect, controllers.getAllOrganizations)
 router.get('/getOrganization/:_id', AdminProtect, controllers.getOrganization)
 router.get('/getOrganizationStats/:stats', AdminProtect, controllers.getOrganizationStats)
+router.get('/getOrganizationProfile', Protect, controllers.getOrganizationProfile)
+
 
 
 

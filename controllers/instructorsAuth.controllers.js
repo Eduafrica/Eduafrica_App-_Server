@@ -374,6 +374,7 @@ export async function resetPassword (req, res){
 //INSTRUCTOR UPDATE PROFILE
 export async function updateProfile(req, res){
     const { name, displayName, country, preferredLanguage, allowNotifications } = req.body
+    const { _id } = req.user
     try {
         const updateUser = await InstructorModel.findByIdAndUpdate(
             _id,
@@ -393,6 +394,22 @@ export async function updateProfile(req, res){
     } catch (error) {
         console.log('UNABLE TO UPDATE INSTRUCTOR PROFILE', error)
         res.status(500).json({ success: false, data: 'Unable to update instructor profile' })
+    }
+}
+
+//GET A INSTRUCTOR PROFILE
+export async function getInstructorProfile(req, res) {
+    const { _id } = req.user
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Instructor ID is required' })
+    }
+    try {
+        const getInstructor = await InstructorModel.findById({ _id: _id }).select('-password')
+
+        res.status(200).json({ success: true, data: getInstructor })
+    } catch (error) {
+        console.log('UNABLE TO GET INSTRUCTOR PROFILE', error)
+        res.status(500).json({ success: false, data: 'Uanble to get instructor profile' })
     }
 }
 

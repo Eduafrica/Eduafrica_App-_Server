@@ -17,6 +17,7 @@ router.post('/toggleblock', AdminProtect, controllers.toggleblock)
 router.get('/getAllInstructor', AdminProtect, controllers.getAllInstructor)
 router.get('/getInstructor/:_id', AdminProtect, controllers.getInstructor)
 router.get('/getInstructorStats/:stats', AdminProtect, controllers.getInstructorStats)
+router.post('/getInstructorProfile', Protect, controllers.getInstructorProfile )
 
 
 //PUT ROUTES

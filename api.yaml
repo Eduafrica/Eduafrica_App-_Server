@@ -1399,3 +1399,28 @@ paths:
           description: User error
         500: 
           description: Server error
+
+  /api/organization/getOrganizationProfile:
+    get:
+      summary: Gets organization profile
+      description: Gets organization profile
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+          
+  /api/instructor/getInstructorProfile:
+    get:
+      summary: Gets instructor profile
+      description: Gets instructor profile
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+          
