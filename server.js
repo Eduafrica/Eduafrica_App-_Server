@@ -27,7 +27,7 @@ import pushNotificationRoute from './routes/pushNotification.routes.js';
 import advertRoute from './routes/advert.routes.js';
 import dashboardRoute from './routes/dashboard.routes.js';
 import payoutRoute from './routes/payout.routes.js';
-
+import instructorFaqRoute from './routes/instructorFaq.routes.js';
 
 
 // CORS setup
@@ -112,6 +112,8 @@ app.use('/api/pushNotification', pushNotificationRoute)
 app.use('/api/advert', advertRoute)
 app.use('/api/dashboard', dashboardRoute)
 app.use('/api/payout', payoutRoute)
+app.use('/api/instructorFaq', instructorFaqRoute)
+
 
 
 

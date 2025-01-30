@@ -1423,4 +1423,106 @@ paths:
           description: User error
         500: 
           description: Server error
+        
+  /api/instructorFaq/newFaq:
+    post:
+      summary: Endpoint to create new instructor faq
+      description: Endpoint to create a new faq for either instructor or organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - question
+              - answer
+            properties:
+              question:
+                type: string
+              answer:
+                type: string
+      responses:
+        201: 
+          description: success
+        400:
+          description: User error
+        500: 
+          description: Server error
+        
+  /api/instructorFaq/updateFaq:
+    post:
+      summary: Endpoint to upodate a instructor faq
+      description: Endpoint to update a faq for either instructor or organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - question
+              - answer
+              - faqId
+            properties:
+              question:
+                type: string
+              answer:
+                type: string
+              faqId:
+                type: string
+      responses:
+        201: 
+          description: success
+        400:
+          description: User error
+        500: 
+          description: Server error
+           
+  /api/instructorFaq/deleteFaq:
+    post:
+      summary: Endpoint to delete instructor faq
+      description: Endpoint to delete a faq for either instructor or organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - faqId
+            properties:
+              faqId:
+                type: string
+      responses:
+        201: 
+          description: success
+        400:
+          description: User error
+        500: 
+          description: Server error
+             
+  /api/instructorFaq/getFaq/:instructorID:
+    get:
+      summary: Gets faq of instructor passing the instructorID or organizationID
+      description: Gets faq of instructor
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
           
+  /api/instructorFaq/getAFaq/:instructorID/:faqId:
+    get:
+      summary: Gets a single faq of instructor passing the instructorID or organizationID
+      description: Gets a single faq of instructor
+      responses:
+        200: 
+          description: successful 
+        400:
+          description: User error
+        500: 
+          description: Server error
+             
