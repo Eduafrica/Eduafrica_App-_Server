@@ -1526,3 +1526,137 @@ paths:
         500: 
           description: Server error
              
+  /api/organization/newInstructor:
+    post:
+      summary: Organization to add instructors
+      description: For organization mto add instructors
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - profileImg
+              - position
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              profileImg:
+                type: string
+              position:
+                type: string
+      responses:
+        201: 
+          description:  Success
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/updateInstructor:
+    post:
+      summary: Organization to update instructors
+      description: For organization to update instructors _id of the instructor is required
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+            properties:
+              _id:
+                type: string
+              name:
+                type: string
+              email:
+                type: string
+              profileImg:
+                type: string
+              position:
+                type: string
+      responses:
+        200: 
+          description:  Success
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/deleteInstructor:
+    post:
+      summary: Organization to delete instructors
+      description: For organization to delete instructors
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - _id
+            properties:
+              _id:
+                type: string
+      responses:
+        200: 
+          description:  Success
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/getInstructor:
+    post:
+      summary: Endpoint to get all instructors of an organization
+      description: To get all Instructors in an organizations. passing organisationID as parameter
+      parameters:
+        - name: params
+          in: params
+          required: true
+          schema:
+            type: string
+            required:
+              - organisationID
+            properties:
+              organisationID:
+                type: string
+      responses:
+        200: 
+          description:  Success
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/getAInstructor:
+    post:
+      summary: Endpoint to get a instructor of an organization
+      description: To get a Instructor in an organizations. passing organisationID and instructorID as parameter
+      parameters:
+        - name: params
+          in: params
+          required: true
+          schema:
+            type: string
+            required:
+              - organisationID
+              - instructorID
+            properties:
+              organisationID:
+                type: string
+              instructorID:
+                type: string
+      responses:
+        200: 
+          description:  Success
+        400:
+          description: User error
+        500: 
+          description: Server error

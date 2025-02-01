@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import crypto from 'crypto'
 import bcryptjs from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
+import { type } from "os";
 
 
 const organizationSchema = new mongoose.Schema({
@@ -68,6 +69,22 @@ const organizationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    instructors: [
+        {
+            name: {
+                type: String
+            },
+            email: {
+                type: String
+            },
+            profileImg: {
+                type: String
+            },
+            position: {
+                type: String
+            }
+        }
+    ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 },

@@ -620,3 +620,96 @@ export async function getOrganizationStats(req, res) {
         res.status(500).json({ success: false, data: 'Unable to get student stats' });
     }
 }
+
+//NEW INSTRUCTORS UNDER AN ORGNIZATION
+export async function newInstructor(req, res) {
+    const { name, email, profileImg, position } = req.body
+    const { organisationID } = req.user
+    try {
+        const getOrganization = await organizationModel.findOne({ organisationID })
+
+        const data = { name, email, profileImg, position }
+
+        getOrganization.instructors.push(data)
+        await getOrganization.save()
+
+        res.status(201).json({ success: true, data: 'New Instructor added' })
+    } catch (error) {
+        console.log('UNABLE TO CREATE NEW INSTRUCTOR', error)
+        res.status(500).json({ success: false, data: 'Unable to create a new instructor'})
+    }
+}
+
+//UPDATE INSTRUCTOR IN AN ORGANIZATION
+export async function updateInstructor(req, res) {
+    const { _id, name, email, profileImg, position } = req.body
+    const { organisationID } = req.user
+    try {
+        const getOrganization = await organizationModel.findOne({ organisationID })
+
+        const instructor = getOrganization.instructors.find((instructor) => instructor._id.toString() === _id)
+
+        if(name) instructor.name = name
+        if(email) instructor.email = email
+        if(profileImg) instructor.profileImg = profileImg
+        if(position) instructor.position = position
+        
+        await getOrganization.save()
+
+        res.status(200).json({ success: true, data: 'Instructor updated' })
+    } catch (error) {
+        console.log('UNABLE TO UPDATE INSTRUCTOR', error)
+        res.status(500).json({ success: false, data: 'Unable to update instructor'})
+    }
+}
+
+//DELETE INSTRUCTOR IN AN ORGANIZATION
+export async function deleteInstructor(req, res) {
+    const { _id } = req.body
+    const { organisationID } = req.user
+    try {
+        const getOrganization = await organizationModel.findOne({ organisationID })
+
+        const instructor = getOrganization.instructors.filter((instructor) => instructor._id === _id)
+        if(!instructor){
+            return res.status(404).json({ success: false, data: 'No Instructor found'})
+        }
+
+        await getOrganization.save()
+
+        res.status(200).json({ success: true, data: 'Instructor data deleted' })
+    } catch (error) {
+        console.log('UNABLE TO DELETE INSTRUCTOR', error)
+        res.status(500).json({ success: false, data: 'Unable to delete a instructor'})
+    }
+}
+
+//GET INSTRUCTORS IN AN ORGANIZATIONS
+export async function getInstructor(req, res) {
+    const { organisationID } = req.params
+    try {
+        const getOrganization = await organizationModel.findOne({ organisationID })
+
+        const instructor = getOrganization.instructors
+
+        res.status(200).json({ success: true, data: instructor })
+    } catch (error) {
+        console.log('UNABLE TO GET INSTRUCTOR', error)
+        res.status(500).json({ success: false, data: 'Unable to get instructor'})
+    }
+}
+
+//GET A INSTRUCTOR IN AN ORGANIZATION
+export async function getAInstructor(req, res) {
+    const { organisationID, instructorID } = req.params
+    try {
+        const getOrganization = await organizationModel.findOne({ organisationID })
+
+        const instructor = getOrganization.instructors.find((instructor) => instructor._id.toString() === instructorID)
+
+        res.status(200).json({ success: true, data: instructor })
+    } catch (error) {
+        console.log('UNABLE TO GET INSTRUCTOR', error)
+        res.status(500).json({ success: false, data: 'Unable to get instructor'})
+    }
+}
