@@ -11,9 +11,9 @@ router.post('/googleSignin', controllers.googleSignin )
 router.post('/forgotPassword', controllers.forgotPassword )
 router.post('/resetPassword/:resetToken', controllers.resetPassword )
 router.post('/toggleblock', AdminProtect, controllers.toggleblock)
-router.get('/newInstructor', Protect, UserRole(['organization']), controllers.newInstructor)
-router.get('/updateInstructor', Protect, UserRole(['organization']), controllers.updateInstructor)
-router.get('/deleteInstructor', Protect, UserRole(['organization']), controllers.deleteInstructor)
+router.post('/newInstructor', Protect, UserRole(['organization']), controllers.newInstructor)
+router.post('/updateInstructor', Protect, UserRole(['organization']), controllers.updateInstructor)
+router.post('/deleteInstructor', Protect, UserRole(['organization']), controllers.deleteInstructor)
 
 
 //GET ROUTES

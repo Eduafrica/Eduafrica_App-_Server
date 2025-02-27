@@ -132,6 +132,7 @@ export async function login(req, res) {
     if(!name || !password){
         return res.status(404).json({ success: false, data: 'Provide an email or StaffId and password' })
     }
+    console.log('EMAIL', name, 'Password', password)
     try {
         const isEmail = name.includes('@');
 

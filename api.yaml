@@ -532,6 +532,10 @@ paths:
               - organisationName
               - password
               - confirmPassword
+              - displayName
+              - country
+              - phoneNumber
+              - whatsappNumber
             properties:
               email:
                 type: string
@@ -542,6 +546,14 @@ paths:
               password:
                 type: string
               confirmPassword:
+                type: string
+              displayName:
+                type: string
+              country:
+                type: string
+              phoneNumber:
+                type: string
+              whatsappNumber:
                 type: string
       responses:
         201: 
