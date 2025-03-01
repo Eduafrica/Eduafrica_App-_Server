@@ -376,6 +376,7 @@ paths:
               - password
               - confirmPassword
               - email
+              - country
               - preferredLanguage
               - phoneNumber
             properties:
