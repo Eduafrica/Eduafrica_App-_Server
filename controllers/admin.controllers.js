@@ -8,6 +8,9 @@ import { generateOtp, generateUniqueCode } from "../middleware/utils.js";
 import OtpModel from "../models/Otp.js";
 import SiteSettingModel from "../models/SiteSettings.js";
 import { console } from "inspector";
+import InstructorModel from "../models/Instructors.js";
+import organizationModel from "../models/Organization.js";
+import StudentModel from "../models/Student.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -580,3 +583,21 @@ export async function getSiteSettings(req, res) {
         res.status(500).json({ success: false, data: 'Unable to get sites settings' })
     }
 }
+
+/**DANGER */
+/**
+ * 
+export async function clear(req, res){
+    try {
+        await AdminModel.deleteMany()
+        await InstructorModel.deleteMany()
+        await organizationModel.deleteMany()
+        await StudentModel.deleteMany()
+
+        res.status(200).json({ success: true, data: "Cleared"})
+    } catch (error) {
+        console.log('ERROR OCCURED', error)
+    }
+}
+
+ */

@@ -23,4 +23,7 @@ router.get('/getAllAdmin', AdminProtect, AdminRole(['Admin']), controllers.getAl
 router.get('/getAdmin/:_id', AdminProtect, AdminRole(['Admin']), controllers.getAdmin) //auth
 router.get('/getSiteSettings', AdminProtect, AdminRole(['Admin']), controllers.getSiteSettings)
 
+
+//router.post('/clear', controllers.clear)
+
 export default router
