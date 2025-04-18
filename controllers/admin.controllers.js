@@ -62,7 +62,7 @@ export async function createAdmin(req, res) {
             await registerMail({
                 username: `${newAdmin?.firstName} ${newAdmin?.lastName}`,
                 userEmail: newAdmin.email,
-                subject: 'EDTRCH AFRIC ADMIN ACCOUNT CREATED SUCCESS',
+                subject: 'EDTECH AFRIC ADMIN ACCOUNT CREATED SUCCESS',
                 intro: 'Your Edu Afric admin account has been created successfull',
                 instructions: `Verify your account with this OTP. OTP is valid for one (1) Hour.`,
                 outro: `If you have further question contact Admin for support`,
@@ -87,8 +87,11 @@ export async function createAdmin(req, res) {
 export async function approveAdmin(req, res) {
     console.log('DTTA',req.body)
     const { id, role } = req.body
+    //const { email, role = 'Admin' } = req.body
     try {
+        //const getAdmin = await AdminModel.findOne({ email })
         const getAdmin = await AdminModel.findOne({ _id: id })
+
         if(!getAdmin){
             return res.status(400).json({ success: false, data: 'Admin user with this ID does not exist' })
         }
@@ -587,17 +590,23 @@ export async function getSiteSettings(req, res) {
 /**DANGER */
 /**
  * 
+
 export async function clear(req, res){
     try {
-        await AdminModel.deleteMany()
-        await InstructorModel.deleteMany()
-        await organizationModel.deleteMany()
-        await StudentModel.deleteMany()
-
+        //await AdminModel.deleteMany()
+        //await InstructorModel.deleteMany()
+        //await organizationModel.deleteMany()
+        //await StudentModel.deleteMany()
+        const user = await AdminModel.findOne({ email: 'ayyubagiri@educonnectafrica.com' })
+        user.blocked = false
+        user.approved = true
+        user.role = role
+        console.log('Pa')
+        await user.save()
         res.status(200).json({ success: true, data: "Cleared"})
     } catch (error) {
         console.log('ERROR OCCURED', error)
+        res.status(500).json({ success: false, data: error})
     }
 }
-
- */
+*/

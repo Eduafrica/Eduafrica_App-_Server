@@ -10,6 +10,7 @@ import CardDeatilsModel from "../models/CardDetails.js";
 import moment from 'moment';
 import cron from 'node-cron';
 import { sendCustomNotification } from "./pushNotification.controllers.js";
+import AdminModel from "../models/Admin.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
