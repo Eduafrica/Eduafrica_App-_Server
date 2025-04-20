@@ -1,20 +1,16 @@
 import mongoose from "mongoose";
 
 const PushNotificationSchema = new mongoose.Schema({
-    user: [
-        {
-            email: {
-                type: String,
-                required: [ true, 'Email address is required' ]
-            },
-            data: {
-                type: Object
-            },
-            accountType: {
-                type: String
-            }
-        }
-    ]
+    data: {
+        type: Object,
+        required: [true, 'Data token is required'],
+    },
+    name : {
+        type: String
+    },
+    email : {
+        type: String
+    }
 })
 
 const PushNotificationModel = mongoose.model('PushNotification', PushNotificationSchema)

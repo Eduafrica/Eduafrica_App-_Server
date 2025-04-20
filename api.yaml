@@ -1254,16 +1254,13 @@ paths:
           schema:
             type: object
             required:
-              - email
-              - accountType
               - data
             properties:
-              email:
-                type: string
-              accountType:
-                type: string
               data:
                 type: object
+                properties:
+                  deviceToken: 
+                    type: string
       responses:
         201: 
           description: Subscription saved! 
