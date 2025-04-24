@@ -455,6 +455,37 @@ paths:
         500: 
           description: Server error
 
+  /api/instructor/googleSignin:
+    post:
+      summary: Instructor google Signin
+      description: google Signin a instructor
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userEmail
+              - userName
+              - photo
+            properties:
+              userEmail:
+                type: string
+              userName:
+                type: string
+              photo:
+                type: string
+      responses:
+        200: 
+          description: Signup successful but account not verified
+        201: 
+          description: Signup successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/instructor/resetPassword/:resetToken:
     post:
       summary: Instructor reset password request
@@ -592,6 +623,37 @@ paths:
         500: 
           description: Server error
 
+  /api/organization/googleSignin:
+    post:
+      summary: Organization google Signin
+      description: google Signin a organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - userEmail
+              - userName
+              - photo
+            properties:
+              userEmail:
+                type: string
+              userName:
+                type: string
+              photo:
+                type: string
+      responses:
+        200: 
+          description: Signup successful but account not verified
+        201: 
+          description: Signup successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/auth/verifyOtp:
     post:
       summary: Verify User account with OTP
@@ -614,7 +676,7 @@ paths:
           description: User error
         500: 
           description: Server error
-  
+
   /api/aiChat/aiChat:
     post:
       summary: Chat With AI Zara (AI conversation bot)
