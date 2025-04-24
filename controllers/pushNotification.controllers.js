@@ -1,7 +1,7 @@
 import webpush from 'web-push';
 import PushNotificationModel from '../models/PushNotifications.js';
 import CmsModel from '../models/cms.js';
-import admin from '../middlewares/firebase.js';
+import admin from '../middleware/firebase.js';
 
 const apiKeys = {
     publicKey: process.env.WEB_PUSH_PUBLIC_KEY,
