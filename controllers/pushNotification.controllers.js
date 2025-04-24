@@ -39,7 +39,7 @@ export async function saveSubscription(req, res) {
         const notificationPayload = {
             notification: {
                 title: "NEW SUBSCRIPTION",
-                body: 'Welcome to RideFuze',
+                body: 'Welcome to Eduafrica',
                 //image, // Fixed image URL
             },
             token: data.deviceToken
