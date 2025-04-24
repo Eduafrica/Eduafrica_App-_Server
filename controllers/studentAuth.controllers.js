@@ -661,11 +661,13 @@ async function checkLearningReminders() {
 
                 // Compare both the current day and time with the reminder's day and time
                 if (currentDay === day && currentTime === time) {
+                    const title = 'Edu-Africa Learning Reminder'
                     const message = `Hello! This is your learning reminder for ${day} at ${time}.`;
+                    const userEmail = user.email
                     console.log(`Sending reminder to ${user.email}: ${message}`);
 
                     // Send the push notification
-                    const response = await sendCustomNotification(message, user.email);
+                    const response = await sendCustomNotification({userEmail, title,  message});
                     if (response.success) {
                         console.log(`Reminder notification sent to ${user.email}`);
                     } else {
