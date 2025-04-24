@@ -7,6 +7,7 @@ config();
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import morgan from 'morgan';
 
 //IMPORT ROUTES
 import authRoute from './routes/auth.routes.js';
@@ -57,6 +58,9 @@ const io = new Server(server, {
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Add Morgan middleware to log HTTP requests
+app.use(morgan('dev'));
 
 app.use(express.urlencoded({ extended: true })); // Parses URL-encoded data
 
