@@ -1,6 +1,7 @@
 import webpush from 'web-push';
 import PushNotificationModel from '../models/PushNotifications.js';
 import CmsModel from '../models/cms.js';
+import admin from '../middlewares/firebase.js';
 
 const apiKeys = {
     publicKey: process.env.WEB_PUSH_PUBLIC_KEY,
@@ -34,6 +35,24 @@ export async function saveSubscription(req, res) {
         }
 
         const NewPushNotification = await PushNotificationModel.create({ data, name, email });
+
+        const notificationPayload = {
+            notification: {
+                title: "NEW SUBSCRIPTION",
+                body: 'Welcome to RideFuze',
+                //image, // Fixed image URL
+            },
+            token: data.deviceToken
+        };
+
+        try {
+            // Send the notification using FCM
+            console.log('SENDING PUSH NOTIFICATION', data.deviceToken)
+            const response =  await admin.messaging().send(notificationPayload);
+            console.log(`Notification sent to ${email}`, response);
+        } catch (error) {
+            console.error(`Failed to send notification to ${email}`, error);
+        }
 
         res.status(201).json({ success: true, data: 'Subscription saved!' });
     } catch (error) {
