@@ -24,11 +24,11 @@ export async function saveSubscription(req, res) {
     if (!data) {
         return res.status(400).json({ success: false, data: 'Data is required is required. data {deviceToken: "token"}' });
     }
-    console.log('deviceToken', deviceToken)
-
+    
     try {
         // Find or create the document
         const deviceToken = data.deviceToken
+        console.log('deviceToken', deviceToken)
         const getPushNotification = await PushNotificationModel.findOne({ 'data.deviceToken': deviceToken });
         if (!getPushNotification) {
             res.status(201).json({ success: true, data: 'Subscription saved!' });
