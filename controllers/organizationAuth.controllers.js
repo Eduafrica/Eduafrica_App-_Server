@@ -189,6 +189,7 @@ export async function resendOtp(req, res) {
     try {
         const getUser = await organizationModel.findOne({ email })
         if(!getUser) return res.status(404).json({ succes: false, data: 'Email does not exist' })
+        //if(getUser.verified) return res.status(200).json({ success: false, data: 'Account already verified' })
 
         const otpCode = await generateOtp(getUser._id, 'organization')
         console.log('RESEND OTP CODE', otpCode)
