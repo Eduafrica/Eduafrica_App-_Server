@@ -6,6 +6,7 @@ const router = express.Router()
 
 router.post('/verifyOrganizationDetails', controllers.verifyOrganizationDetails)
 router.post('/register', controllers.registerUser )
+router.post('/resendOtp', controllers.resendOtp )
 router.post('/login', controllers.login )
 router.post('/googleSignin', controllers.googleSignin )
 router.post('/forgotPassword', controllers.forgotPassword )

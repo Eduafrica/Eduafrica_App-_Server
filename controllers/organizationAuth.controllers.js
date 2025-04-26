@@ -168,7 +168,7 @@ export async function registerUser(req, res) {
                 otp: otpCode,
             });
 
-            return res.status(200).json({ success: true, data: `Signup successful check otp code sent to ${user.email} to activate account` });
+            return res.status(200).json({ success: true, data: `successful check otp code sent to ${getUser.email} to activate account` });
         } catch (error) {
             console.log('ERROR SENDING VERIFY OTP EMAIL', error);
         }
@@ -178,6 +178,43 @@ export async function registerUser(req, res) {
     } catch (error) {
         console.log('UNABLE TO REGISTER USER', error)
         res.status(500).json({ success: false, data: 'Failed to create account' })
+    }
+}
+
+//RESEND OTP
+export async function resendOtp(req, res) {
+    const { email } = req.body
+    if(!email) return res.status(400).json({ success: false, data: 'Email address is required' })
+    
+    try {
+        const getUser = await organizationModel.findOne({ email })
+        if(!getUser) return res.status(404).json({ succes: false, data: 'Email does not exist' })
+
+        const otpCode = await generateOtp(getUser._id, 'organization')
+        console.log('RESEND OTP CODE', otpCode)
+
+        try {
+            await registerMail({
+                username: `${getUser.name}`,
+                userEmail: getUser.email,
+                subject: 'EDTRCH AFRICA VERIFY OTP',
+                intro: 'Verify your Edtech Afric email address',
+                instructions: `Account Signed Up Successfully. Enter Otp to verify your Email Address. Your OTP code is: ${otpCode} Note Otp is Valid for One (1) Hour.`,
+                outro: `If you did not Sign Up, please ignore this email and report.
+                `,
+                otp: otpCode,
+            });
+
+            return res.status(200).json({ success: true, data: `Signup successful check otp code sent to ${user.email} to activate account` });
+        } catch (error) {
+            console.log('ERROR SENDING VERIFY OTP EMAIL', error);
+        }
+
+        res.status(201).json({ success: true, data: 'OTP sent to email address' })
+        
+    } catch (error) {
+        console.log('UNABLE TO RESEND OTP', error)
+        res.status(500).json({ success: false, data: 'Unable to resend otp'})
     }
 }
 
