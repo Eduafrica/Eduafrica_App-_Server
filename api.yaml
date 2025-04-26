@@ -99,6 +99,29 @@ paths:
         500: 
           description: Server error
 
+  /api/student/resendOtp:
+    post:
+      summary: Student resend otp
+      description: Resend otp to student
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+      responses:
+        201: 
+          description: successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/student/login:
     post:
       summary: Student Login
@@ -405,6 +428,29 @@ paths:
         500: 
           description: Server error
 
+  /api/instructor/resendOtp:
+    post:
+      summary: Instructor resend otp
+      description: Resend otp to instructor
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+      responses:
+        201: 
+          description: successful
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/instructor/login:
     post:
       summary: Instructor Login
@@ -591,6 +637,29 @@ paths:
       responses:
         201: 
           description: Signup successful verification OTP sent to organization's email address
+        400:
+          description: User error
+        500: 
+          description: Server error
+
+  /api/organization/resendOtp:
+    post:
+      summary: Organization resend otp
+      description: Resend otp to organization
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - email
+            properties:
+              email:
+                type: string
+      responses:
+        201: 
+          description: successful
         400:
           description: User error
         500: 
