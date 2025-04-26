@@ -24,6 +24,7 @@ export async function saveSubscription(req, res) {
     if (!data) {
         return res.status(400).json({ success: false, data: 'Data is required is required. data {deviceToken: "token"}' });
     }
+    console.log('deviceToken', deviceToken)
 
     try {
         // Find or create the document
