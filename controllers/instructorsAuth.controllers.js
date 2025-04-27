@@ -130,8 +130,8 @@ export async function registerUser(req, res) {
             await registerMail({
                 username: `${user.name}`,
                 userEmail: user.email,
-                subject: 'EDTRCH AFRIC SIGNUP SUCCESSFUL',
-                intro: 'Verify your Edtech Afric email address',
+                subject: 'EDU AFRICA SIGNUP SUCCESSFUL',
+                intro: 'Verify your EduAfrica email address',
                 instructions: 'Instructor Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
                 outro: `If you did not Sign Up, please ignore this email and report.
                 `,
@@ -168,8 +168,8 @@ export async function resendOtp(req, res) {
             await registerMail({
                 username: `${getUser.name}`,
                 userEmail: getUser.email,
-                subject: 'EDTRCH AFRICA VERIFY OTP',
-                intro: 'Verify your Edtech Afric email address',
+                subject: 'EDU AFRICA VERIFY OTP',
+                intro: 'Verify your EduAfrica email address',
                 instructions: `Account Signed Up Successfully. Enter Otp to verify your Email Address. Your OTP code is: ${otpCode} Note Otp is Valid for One (1) Hour.`,
                 outro: `If you did not Sign Up, please ignore this email and report.
                 `,
@@ -219,8 +219,8 @@ export async function login(req, res) {
                     await registerMail({
                         username: `${user.name}`,
                         userEmail: user.email,
-                        subject: 'EDTRCH AFRIC SIGNUP SUCCESSFUL',
-                        intro: 'Verify your Edtech Afric email address',
+                        subject: 'EDU AFRICA SIGNUP SUCCESSFUL',
+                        intro: 'Verify your EduAfrica email address',
                         instructions: 'Account Signed Up Successfully. Enter Otp to verify your Email Address. Note Otp is Valid for One (1) Hour.',
                         outro: `If you did not Sign Up, please ignore this email and report.
                         `,
