@@ -304,7 +304,9 @@ export async function forgotPassword(req, res) {
         await user.save()
         //const resetUrl = `http://google.com`
         //const resetUrl = `<a href=“eduafrica-mobile://reset-password/${resetToken}”></a>`
-        const resetUrl = `Eduafrica_App://mobile://set_new_paasword?${resetToken}`
+        //const resetUrl = `Eduafrica_App://mobile://set_new_paasword?${resetToken}`
+        const resetUrl = `<a href=“eduafrica://reset-password/${resetToken}”></a>`
+
         console.log('RESET TOKEN', resetToken, 'LINK',resetUrl)
         try {
             // send mail

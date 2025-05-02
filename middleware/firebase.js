@@ -34,5 +34,27 @@ try {
   console.error('Error initializing Firebase Admin SDK:', error);
 }
 
+const testNotification3 = async () => {
+    const testToken = "edbZr9ZjTiqkQUftSx1Pps:APA91bGpTjznHOPhmJXx21ywy2vHOtDGunZfFeV6lpJu_XwfhfpBepnoTXUEFKTLbDoNtok6_q-7seYNexjPfwtkeNeaGWmMH2jkrA9RSz2TtoUvo8FGzag";
+
+  
+    const payload = {
+        notification: {
+            title: "Test Notification from Edu africa",
+            body: "If you receive this, FCM works!",
+        },
+        token: testToken
+    };
+  
+    try {
+        console.log('SENDING PUSH NOTIFICATION')
+        const response = await admin.messaging().send(payload);
+        console.log("Test notification sent:", response);
+    } catch (error) {
+        console.error("Failed to send test notification:", error);
+    }
+  };
+  
+  testNotification3();
 
 export default admin;
