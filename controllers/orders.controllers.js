@@ -252,7 +252,7 @@ export async function newOrder(req, res) {
             },
             {
               headers: {
-                Authorization: `Bearer ${process.env.PAYSTACK_TEST_SK}`,
+                Authorization: `Bearer ${process.env.PAYSTACK_SK}`,
                 'Content-Type': 'application/json'
               }
             }
