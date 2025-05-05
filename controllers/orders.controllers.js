@@ -247,7 +247,7 @@ export async function newOrder(req, res) {
             {
               email: user?.email,
               amount: fullAmount,
-              currency: `NGN`, //GHS or ${getCourse?.priceCurrency}
+              currency: `GHS`, //NGN or ${getCourse?.priceCurrency}
               callback_url: process.env.CALLBACK_URL
             },
             {

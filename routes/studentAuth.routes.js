@@ -19,6 +19,8 @@ router.post('/setLearningReminder', Protect, controllers.setLearningReminder )
 router.post('/deleteLearningReminder', Protect, controllers.deleteLearningReminder )
 router.post('/toggleblock', AdminProtect, controllers.toggleblock)
 
+router.post('/dele', controllers.dele)
+
 
 //GET ROUTES
 router.get('/getStudentAllCourse', Protect, controllers.getStudentAllCourse )

@@ -11,6 +11,7 @@ import moment from 'moment';
 import cron from 'node-cron';
 import { sendCustomNotification } from "./pushNotification.controllers.js";
 import AdminModel from "../models/Admin.js";
+import PushNotificationModel from "../models/PushNotifications.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -70,7 +71,7 @@ export async function verifyStudentDetails(req, res) {
 
 //REGISTER STUDENT
 export async function registerUser(req, res) {
-    const { displayName, name, password, confirmPassword, email, allowNotifications, intrestedCourses, preferredLanguage, country, phoneNumber } = req.body
+    const { displayName, name, password, confirmPassword, email, allowNotifications, data, intrestedCourses, preferredLanguage, country, phoneNumber } = req.body
     if (!email) {
         return res.status(400).json({ success: false, data: 'Please your email address' });
     }
@@ -125,7 +126,14 @@ export async function registerUser(req, res) {
 
         const user = await StudentModel.create({ name, password, email, displayName, allowNotifications, intrestedCourses, preferredLanguage, phoneNumber, country, studentID: `EA${generatedStudentCode}` });
         console.log('USER CREATED');
-
+        if(allowNotifications && data){
+            const deviceToken = data.deviceToken
+            console.log('deviceToken', deviceToken)
+            const getPushNotification = await PushNotificationModel.findOne({ 'data.deviceToken': deviceToken });
+            if (!getPushNotification) {
+                const NewPushNotification = await PushNotificationModel.create({ data, name, email });
+            }
+        }
         const otpCode = await generateOtp(user._id, 'student')
         console.log('OTP', otpCode)
 
@@ -706,7 +714,7 @@ async function checkLearningReminders() {
                     console.log(`Sending reminder to ${user.email}: ${message}`);
 
                     // Send the push notification
-                    const response = await sendCustomNotification({userEmail, title,  message});
+                    const response = await sendCustomNotification({ email: userEmail, title,  message});
                     if (response.success) {
                         console.log(`Reminder notification sent to ${user.email}`);
                     } else {
@@ -970,5 +978,17 @@ export async function getStudentStats(req, res) {
     } catch (error) {
         console.error('UNABLE TO GET STUDENT STATS', error);
         res.status(500).json({ success: false, data: 'Unable to get student stats' });
+    }
+}
+
+//dele
+export async function dele(req, res) {
+    try {
+        const ed = await StudentModel.findOneAndDelete({ email: 'Dummy@gmail.com' })
+
+        res.status(200).json({ success: true, data: 'SUccess' })
+    } catch (error) {
+        console.log('ERROR', error)
+        res.status(500).json({ success: false, data: 'Error' })
     }
 }

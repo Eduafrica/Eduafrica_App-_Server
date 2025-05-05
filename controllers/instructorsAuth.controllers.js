@@ -6,6 +6,7 @@ import InstructorModel from "../models/Instructors.js";
 import sendEmail from "../middleware/mailer.js";
 import Mailgen from "mailgen";
 import crypto from 'crypto'
+import PushNotificationModel from "../models/PushNotifications.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -65,7 +66,7 @@ export async function verifyInstructorDetails(req, res) {
 //REGISTER INSTRUCTOR
 export async function registerUser(req, res) {
     console.log('object', req.body)
-    const { name, displayName, password, confirmPassword, phoneNumber, email, preferredLanguage, country, allowNotifications } = req.body
+    const { name, displayName, password, confirmPassword, phoneNumber, email, preferredLanguage, country, allowNotifications, data } = req.body
     console.log('objectdd', email)
     if(!email){
         return res.status(400).json({ success: false, data: 'Please provide your email address' });
@@ -122,6 +123,15 @@ export async function registerUser(req, res) {
             name, displayName, password, confirmPassword, email, preferredLanguage, phoneNumber, country, allowNotifications, instructorID: `EA${generatedInstructorCode}`
         });
         console.log('USER CREATED');
+
+        if(allowNotifications && data){
+            const deviceToken = data.deviceToken
+            console.log('deviceToken', deviceToken)
+            const getPushNotification = await PushNotificationModel.findOne({ 'data.deviceToken': deviceToken });
+            if (!getPushNotification) {
+                const NewPushNotification = await PushNotificationModel.create({ data, name, email });
+            }
+        }
 
         const otpCode = await generateOtp(user._id, 'instructor')
         console.log('OTP', otpCode)

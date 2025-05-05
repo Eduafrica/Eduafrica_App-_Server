@@ -87,6 +87,11 @@ paths:
                 type: string
               allowNotifications:
                 type: Boolean
+              data:
+                type: object
+                properties:
+                  deviceToken: 
+                    type: string
               intrestedCourses:
                 type: Array
               preferredLanguage:
@@ -420,6 +425,13 @@ paths:
                 type: string
               phoneNumber:
                 type: phoneNumber
+              allowNotifications:
+                type: boolean
+              data:
+                type: object
+                properties:
+                  deviceToken: 
+                    type: string
       responses:
         201: 
           description: Signup successful verification OTP sent to instructor email address
@@ -634,6 +646,13 @@ paths:
                 type: string
               whatsappNumber:
                 type: string
+              allowNotifications:
+                type: boolean
+              data:
+                type: object
+                properties:
+                  deviceToken: 
+                    type: string
       responses:
         201: 
           description: Signup successful verification OTP sent to organization's email address

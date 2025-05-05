@@ -5,6 +5,7 @@ import organizationModel from "../models/Organization.js";
 import Mailgen from "mailgen";
 import sendEmail from "../middleware/mailer.js";
 import crypto from 'crypto'
+import PushNotificationModel from "../models/PushNotifications.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -71,7 +72,7 @@ export async function verifyOrganizationDetails(req, res) {
 
 //REGISTER USER
 export async function registerUser(req, res) {
-    const { name, password, confirmPassword, email, organisationName, organisationUrl, displayName, phoneNumber, whatsappNumber, allowNotifications, preferredLanguage, country } = req.body
+    const { name, password, confirmPassword, email, organisationName, organisationUrl, displayName, phoneNumber, whatsappNumber, allowNotifications, data, preferredLanguage, country } = req.body
     if (!email) {
         return res.status(400).json({ success: false, data: 'Please your email address' });
     }
@@ -151,6 +152,15 @@ export async function registerUser(req, res) {
         });
         
         console.log('USER CREATED');
+
+        if(allowNotifications && data){
+            const deviceToken = data.deviceToken
+            console.log('deviceToken', deviceToken)
+            const getPushNotification = await PushNotificationModel.findOne({ 'data.deviceToken': deviceToken });
+            if (!getPushNotification) {
+                const NewPushNotification = await PushNotificationModel.create({ data, name, email });
+            }
+        }
         
 
         const otpCode = await generateOtp(user._id, 'organization')
