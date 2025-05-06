@@ -781,6 +781,10 @@ export async function toggleblock(req, res) {
 
         // Save the updated user document
         await getUser.save();
+        if(!getUser.blocked){
+            getUser.verified = true;
+            await getUser.save();
+        }
 
         res.status(201).json({ 
             success: true, 
