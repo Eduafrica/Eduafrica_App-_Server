@@ -231,9 +231,9 @@ export async function newOrder(req, res) {
             orderSlug: newOrder?.orderId
         })
 
-        //CREATE ORDER FORM HERE FOR STUDENT NOT IN NIGERIA
+        //CREATE ORDER FORM HERE FOR STUDENT NOT IN GHANA
         console.log('object', country)
-        if(country.toLowerCase() !== 'nigeria'){
+        if(country.toLowerCase() !== 'ghana'){
             return res.status(201).json({ 
                                             success: true, 
                                             data: 'Order form has been created successful please contact admin',
