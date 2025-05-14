@@ -50,7 +50,7 @@ export const Protect = async (req, res, next) => {
 
       req.user = isUser
   
-      //console.log('user', isUser)
+      console.log('user', isUser)
       next();
     } catch (err) {
       if (err.name === 'TokenExpiredError') {

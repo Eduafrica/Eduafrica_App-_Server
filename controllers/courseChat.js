@@ -146,7 +146,7 @@ export async function getCourseGroupChat({ data, socket, req, res }) {
 }
 
 //get list of student courses which have chats
-export async function getStudentCoursesWithChat({ req, res }) {
+export async function getStudentCoursesWithChat( req, res ) {
     const { studentID, course } = req.user
 
     try {
