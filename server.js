@@ -29,6 +29,7 @@ import advertRoute from './routes/advert.routes.js';
 import dashboardRoute from './routes/dashboard.routes.js';
 import payoutRoute from './routes/payout.routes.js';
 import instructorFaqRoute from './routes/instructorFaq.routes.js';
+import CourseChatRoute from './routes/courseChat.js';
 
 
 // CORS setup
@@ -117,7 +118,7 @@ app.use('/api/advert', advertRoute)
 app.use('/api/dashboard', dashboardRoute)
 app.use('/api/payout', payoutRoute)
 app.use('/api/instructorFaq', instructorFaqRoute)
-
+app.use('/api/courseChat', CourseChatRoute)
 
 
 
@@ -176,6 +177,7 @@ generalNamespace.on('connection', (socket) => {
   }
 
   socket.on('courseGroupChat', (data) => courseChatsController.courseGroupChat({ data, socket }));
+  socket.on('getCourseGroupChat', (data) => courseChatsController.getCourseGroupChat({ data, socket }));
 
   socket.on('disconnect', () => {
     console.log('General Socket disconnected:', socket.id);

@@ -81,3 +81,94 @@ export async function courseGroupChat({ data, socket, res }) {
         if(socket) return socket.emit('courseGroupChat', { success: false, data: message })
     }
 }
+
+//get chat
+export async function getCourseGroupChat({ data, socket, req, res }) {
+    const { courseSlug: reqCourseSlug } = req.data
+    const { courseSlug: dataCourseSlug } = data
+    console.log('SOCKET CHAT DATA', data)
+    const courseSlug = reqCourseSlug || dataCourseSlug
+    
+    const { studentID: socketStudentID, organisationID: socketOrganisationID, instructorID: socketInstructorID, staffID: socketStaffID } = socket.user
+    const { studentID: reqStudentID, organisationID: reqOrganisationID, instructorID: reqInstructorID, staffID: reStaffID } = req.user
+
+    const studentID = socketStudentID || reqStudentID
+    const organisationID = socketOrganisationID || reqOrganisationID
+    const instructorID = socketInstructorID || reqInstructorID
+    const staffID = socketStaffID || reStaffID
+
+    try {
+        let getCourse 
+        getCourse = await CourseChatModel.findOne({ courseSlug })
+        if(!getCourse){
+            const message = 'Course chats not found'
+            if(res) return res.status(404).json({ success: false, data: message })
+            if(socket) return socket.emit('getCourseGroupChat', { success: false, data: message })
+        }
+
+        const getCourseContent = await CourseContentModel.findOne({ slugCode: courseSlug })
+        if(!getCourseContent){
+            const message = 'Course not found'
+            if(res) return res.status(404).json({ success: false, data: message })
+            if(socket) return socket.emit('getCourseGroupChat', { success: false, data: message })
+        }
+
+
+        //check if student is registered for course
+        if(studentID){
+            const getStudent = await CourseContentModel.findOne({ courseId: courseSlug, students: { $in: [studentID] } })
+            if(!getStudent){
+                const message = 'You are not registered for this course'
+                if(res) return res.status(400).json({ success: false, data: message })
+                if(socket) return socket.emit('getCourseGroupChat', { success: false, data: message })
+            }
+        }
+
+        //check if instructor or organization is the owner of the course
+        if(instructorID || organisationID){
+            const getCourse = await CourseModel.findOne({ slugCode: courseSlug, instructorId: instructorID || organisationID })
+            if(!getCourse){
+                const message = 'You are not the owner of this course'
+                if(res) return res.status(400).json({ success: false, data: message })
+                if(socket) return socket.emit('getCourseGroupChat', { success: false, data: message })
+            }
+        }
+    
+        console.log('getCourse.chats', getCourse.chats)
+
+        if(res) return res.status(200).json({ success: true, data: getCourse.chats })
+        if(socket) return socket.emit('getCourseGroupChat', { success: true, data: getCourse.chats })
+    } catch (error) {
+        const message = 'Unable to send message'
+        if(res) return res.status(500).json({ success: false, data: message })
+        if(socket) return socket.emit('getCourseGroupChat', { success: false, data: message })
+    }
+}
+
+//get list of student courses which have chats
+export async function getStudentCoursesWithChat({ req, res }) {
+    const { studentID, course } = req.user
+
+    try {
+        if(course.length === 0){
+            return res.status(404).json({ success: false, data: 'You have not registered for any course' })
+        }
+
+        const getCourse = await CourseChatModel.find({ courseSlug: { $in: course } })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'You have not registered for any course' })
+        }
+        const courseList = getCourse.map((course) => {
+            return {
+                courseSlug: course.courseSlug,
+                chats: course.chats,
+            }
+        })
+        console.log('getCourse.chats', courseList)
+        return res.status(200).json({ success: true, data: courseList })
+        
+    } catch (error) {
+        console.log('UNABLE TO GET STUDENT COURSES WITH CHAT', error)
+        return res.status(500).json({ success: false, data: 'Unable to get student courses with chat' })
+    }
+}

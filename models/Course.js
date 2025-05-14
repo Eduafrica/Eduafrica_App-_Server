@@ -55,7 +55,7 @@ const CourseSchema = new mongoose.Schema({
     },
     priceCurrency: {
         type: String,
-        default: 'NGN'
+        default: 'GHS'
     },
     isDiscountAllowed: {
         type: Boolean,

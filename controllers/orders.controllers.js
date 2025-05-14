@@ -327,7 +327,7 @@ export async function verifyPaymentPaystackWebhook(req, res) {
           //add student _id from student array course model
           getCourse?.students.push(getOrder?.userId)
           // add course id from student course array
-          getStudent?.course.push(getCourse?._id)
+          getStudent?.course.push(getCourse?.slugCode)
           // remove student _id from course content model
           courseContent?.students.push(getOrder?.userId)
           //increase student total by one in course model
@@ -415,11 +415,11 @@ export async function updatePaymentStatus(req, res) {
 
 
             //remove student _id from student array course model
-            getCourse.students.pop(getOrder?.userId)
+            getCourse.students = getCourse.students.filter(id => id.toString() !== getOrder.userId.toString())
             // remove course id from student course array
-            getStudent.course.pop(getCourse?._id)
+            getStudent.course = getStudent.course.filter(id => id.toString() !== getCourse.slugCode.toString())
             // remove student _id from course content model
-            courseContent?.students?.pop(getOrder.userId)
+            courseContent.students = courseContent.students.filter(id => id.toString() !== getOrder.userId.toString())
             //reduce student total by one in course model
             getCourse.studentsTotal -= 1
             //subtract from course owner earnings
@@ -453,7 +453,7 @@ export async function updatePaymentStatus(req, res) {
             //add student _id from student array course model
             getCourse?.students.push(getOrder?.userId)
             // add course id from student course array
-            getStudent?.course.push(getCourse?._id)
+            getStudent?.course.push(getCourse?.slugCode)
             // remove student _id from course content model
             courseContent?.students.push(getOrder?.userId)
             //increase student total by one in course model
