@@ -762,7 +762,7 @@ export async function getStudentCourses(req, res) {
         // - Course ID is in the `studentCoursesArray`
         // - The student's _id exists in the course's `students` array
         const studentCourses = await CourseModel.find({
-            _id: { $in: studentCoursesArray },
+            slugCode: { $in: studentCoursesArray },
             students: _id,
         }).select('-students -isDiscountAllowed -discountPercentage -isBlocked -active -approved');
 
