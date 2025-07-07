@@ -98,7 +98,7 @@ export async function registerUser(req, res) {
         return res.status(400).json({ success: false, data: 'Whatsapp Phone Number is required' });
     }
     if (!organisationName) {
-        return res.status(400).json({ success: false, data: 'Provide Organization' });
+        return res.status(400).json({ success: false, data: 'Provide Organization Name' });
     }
 
     if (password.length < 6) {
@@ -178,7 +178,7 @@ export async function registerUser(req, res) {
                 otp: otpCode,
             });
 
-            return res.status(200).json({ success: true, data: `successful check otp code sent to ${getUser.email} to activate account` });
+            return res.status(200).json({ success: true, data: `successful check otp code sent to ${user.email} to activate account` });
         } catch (error) {
             console.log('ERROR SENDING VERIFY OTP EMAIL', error);
         }

@@ -176,7 +176,7 @@ export async function newOrder(req, res) {
             return res.status(404).json({ success: false, data: 'Course is not active' })
         }
 
-        let payableAmount = getCourse?.price
+        let payableAmount = Number(getCourse?.price).fixed(2)
         let getCouponCodeCourse
         if(couponCode){
             getCouponCodeCourse = await CouponCodeModel.findOne({ code: couponCode })

@@ -87,9 +87,9 @@ export async function createAdmin(req, res) {
 export async function approveAdmin(req, res) {
     console.log('DTTA',req.body)
     const { id, role } = req.body
-    //const { email, role = 'Admin' } = req.body
+    //const { id, role = 'Admin' } = req.body
     try {
-        //const getAdmin = await AdminModel.findOne({ email })
+        //const getAdmin = await AdminModel.findOne({ email: id })
         const getAdmin = await AdminModel.findOne({ _id: id })
 
         if(!getAdmin){
@@ -155,6 +155,7 @@ export async function login(req, res) {
         if(!user.verified){
             console.log('object', user._id.toString())
             let otpExist = await OtpModel.findOne({ userId: user._id.toString() })
+            console.log('otpExist', otpExist)
             if(!otpExist){
                 const otpCode = await generateOtp(user._id, 'admin')
                 console.log('OTP CODE', otpCode)
@@ -176,6 +177,7 @@ export async function login(req, res) {
                     console.log('ERROR SENDING VERIFY OTP EMAIL', error);
                 }
             }   else {
+                console.log('otpExist', otpExist)
                 return res.status(200).json({ success: false, isVerified: false, data: 'Account Not Verified. An Email Has been sent to You Please Verify Account'})
             }
         }

@@ -63,6 +63,12 @@ app.use(express.json());
 // Add Morgan middleware to log HTTP requests
 app.use(morgan('dev'));
 
+//PAYSTACK WEBHOOK
+import * as orderControllers from './controllers/orders.controllers.js';
+
+app.post('/api/orders/verifyPaymentPaystackWebhook', express.raw({ type: 'application/json' }), orderControllers.verifyPaymentPaystackWebhook);
+
+
 app.use(express.urlencoded({ extended: true })); // Parses URL-encoded data
 
 // Set up bodyParser to parse incoming requests
