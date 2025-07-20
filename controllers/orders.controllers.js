@@ -150,7 +150,7 @@ export async function getStudentOrders(req, res) {
 
 export async function newOrder(req, res) {
     const { courseId, couponCode } = req.body
-    const { _id, country } = req.user
+    const { _id, country, course: userCourses } = req.user
     if(!courseId){
         return res.status(400).json({ success: false, data: 'Course ID is required' })
     }
@@ -174,6 +174,11 @@ export async function newOrder(req, res) {
         }
         if(!getCourse.active){
             return res.status(404).json({ success: false, data: 'Course is not active' })
+        }
+
+        //check if user already has course
+        if (userCourses.includes(getCourse?.slugCode.toString())) {
+            return res.status(400).json({ success: false, data: "You have already bought this course" });
         }
 
         let payableAmount = Number(getCourse?.price).toFixed(2)
