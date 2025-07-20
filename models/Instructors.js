@@ -63,7 +63,9 @@ const InstructorSchema = new mongoose.Schema({
     blocked: {
         type: Boolean,
         default: false
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
 },
 {timestamps: true}
 )
