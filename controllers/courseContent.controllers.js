@@ -199,7 +199,7 @@ export async function getAStudentCourseContent(req, res) {
         }
 
         // Check if the course ID is in the user's course array
-        if (!userCourses.includes(_id.toString())) {
+        if (!userCourses.includes(getCourse?.courseId.toString())) {
             return res.status(403).json({ success: false, data: "Access denied. This course is not part of your enrolled courses" });
         }
 
