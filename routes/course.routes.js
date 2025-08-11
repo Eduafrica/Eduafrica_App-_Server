@@ -20,6 +20,7 @@ router.post('/rejectCourse', AdminProtect, controllers.rejectCourse )
 
 router.post('/deActivateCourse', Protect, UserRole(['instructor', 'organization']), controllers.deActivateCourse)
 router.post('/activateCourse', Protect, UserRole(['instructor', 'organization']), controllers.activateCourse)
+router.post('/deleteCourse', Protect, UserRole(['instructor', 'organization']), controllers.deleteCourse)
 
 
 
@@ -28,7 +29,7 @@ router.post('/activateCourse', Protect, UserRole(['instructor', 'organization'])
 
 //GET ROUTES
 router.get('/getAllCourse',  controllers.getAllCourse)
-router.get('/getAllCourseAdmin',  controllers.getAllCourseAdmin)
+router.get('/getAllCourseAdmin', AdminProtect,  controllers.getAllCourseAdmin)
 router.get('/getCourse/:_id', controllers.getCourse)
 router.get('/getACourseAdmin/:_id', AdminProtect, controllers.getACourseAdmin)
 router.get('/getPopularCourse', controllers.getPopularCourse)

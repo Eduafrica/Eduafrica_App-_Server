@@ -1014,3 +1014,42 @@ export async function activateCourse(req, res) {
 }
 
 //DELETE COURSRE BY COURSE OWNER
+export async function deleteCourse(req, res) {
+    const { _id } = req.body
+    const { _id: courseOnwerId } = req.user
+    if(!_id){
+        return res.status(400).json({ success: false, data: 'Course Id is required'})
+    }
+    try {
+        const getCourse = await CourseModel.findById({ _id: _id })
+        if(!getCourse){
+            return res.status(404).json({ success: false, data: 'Course not found' })
+        }
+
+        if (getCourse.instructorId.toString() !== courseOnwerId.toString()) {
+            return res.status(403).json({ success: false, data: 'Not allowed: Permission Denied' });
+        }
+        
+        if(getCourse?.students?.length > 0) {
+            const slugCode = getCourse?.slugCode
+            const deleteACourse = await CourseModel.findByIdAndDelete({ _id: _id })
+            //delete course content as well
+            const getCourseContent = await CourseContentModel.findOne({slugCode})
+            if(getCourseContent) {
+                const deleteCourseContent = await CourseContentModel.findOneAndDelete({slugCode})
+            }
+
+            res.status(201).json({ success: true, data: 'Course has been Deleted' })
+            return
+        }else {
+            getCourse.active = false
+            await getCourse.save()
+            res.status(201).json({ success: true, data: 'Course has been Deactivated because student exist' })
+            return
+        }
+
+    } catch (error) {
+        console.log('UNABLE TO DELETE COURSE')
+        res.status(500).json({ success: false, data: 'Unable to delete course' })
+    }
+}

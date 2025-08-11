@@ -920,6 +920,27 @@ paths:
         500: 
           description: Server error
 
+  /api/course/deleteCourse:
+    post:
+      summary: delete a course by owner
+      description: Delete a course by owner 
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              _id:
+                type: string
+      responses:
+        201: 
+          description: Course deleted successfull
+        400:
+          description: User error
+        500: 
+          description: Server error
+
   /api/course/activateCourse:
     post:
       summary: Activate a course owner
