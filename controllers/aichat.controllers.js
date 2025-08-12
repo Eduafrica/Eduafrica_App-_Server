@@ -3,9 +3,10 @@ import AiChatModel from '../models/AiChat.js';
 import { v4 as uuidv4 } from 'uuid';
 import StudentModel from '../models/Student.js';
 import UserChatsWithAiModel from '../models/UserChatsWithAi.js';
+import CourseCategoryModel from '../models/CourseCategories.js';
 
 const edtechafricAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-const zara = edtechafricAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
+const zara = edtechafricAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 
 export async function aiChat(req, res) {
@@ -24,7 +25,8 @@ export async function aiChat(req, res) {
         let messageChatData
         findUserChat = await AiChatModel.findOne({ userId: userId });
         messageChatData = await UserChatsWithAiModel.findOne({ userId: userId });
-
+        const categoriesList = (await CourseCategoryModel.find().select('category -_id').lean())
+            .map(item => item.category);
 
         if (!findUserChat) {
             const aiChatData = {
@@ -59,7 +61,7 @@ export async function aiChat(req, res) {
         });
 
         const firstPrompt = `
-            You are Zara an AI Powered assistance for a platform: Edtech Afric. Edtech Afric is an online education platform where untrained teachers can come in and learn on how to be better teachers at their job. you are
+            You are Zara an AI Powered assistance for a platform: Edtech Africa. Edtech Africa is an online education platform where untrained teachers can come in and learn on how to be better teachers at their job. you are
             to answer users questions the will ask as regards this platform and work. also users will be able to ask you details about a cousre and also questions you will help them answer it. If a user wants to know more about a course ask them to provide you the course code. 
             Also you will be an assistant to couser instructors to if they need your help to in setting up cousre you would know a instructor from the account type of the user.
             you are to help the user to search for courses the want to the should give you what the want to search for.
@@ -67,11 +69,13 @@ export async function aiChat(req, res) {
 
             Let the user know who you are and what you can do
             this is the user details: ${user ? req.user : 'It is a new user'} 
+            course categories: ${categoriesList} give it to the user in a readable form if only requested by the user
         `
 
         const secondPrompt = `
             based on your very first prompt given to you in the chat histroy to work with it, the current user details in object form is: ${user ? req.user : 'A New User and ask for their name to chat with'} and customer username is ${user ? req?.user.name  : 'A New User and ask for their name to chat with'} continue workig with the first prompt as guide also with the current updated data. the new customer message is: ${message}
             always remember to keep track of the conversation and analyze the chat to fill the corresponding json object appropriately as stated in the first prompt
+            course categories: ${categoriesList} give it to the user in a readable form if only requested by the user
         `
 
         const result = await chat.sendMessage(findUserChat.history.length > 0 ? secondPrompt : firstPrompt );
