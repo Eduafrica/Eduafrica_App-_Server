@@ -3,111 +3,110 @@ import CourseContentModel from "../models/CourseContent.js"
 
 //UPLOAD A COURSE CONTENT
 export async function uploadCourseContent(req, res) {
-    const { courseID, sectionTitle, overview, courseNote, assestLink, assestType, assignment } = req.body
-    const { _id } = req.user
-    //console.log('object', req.body)
     try {
-        if(!courseID){
-            return res.status(400).json({ success: false, data: 'Course ID is required' })
+        const { courseID, sectionTitle, overview, courseNote, assestLink, assestType, assignment } = req.body;
+        const { _id } = req.user;
+
+        if (!courseID) return res.status(400).json({ success: false, data: 'Course ID is required' });
+        if (!sectionTitle) return res.status(400).json({ success: false, data: 'Section Title is required' });
+        if (!overview) return res.status(400).json({ success: false, data: 'Overview of course section is required' });
+        if (!courseNote) return res.status(400).json({ success: false, data: 'Section Course note is required' });
+
+        if (assestLink && !assestType) {
+            return res.status(400).json({ success: false, data: 'Provide a corresponding asset type for media asset' });
         }
-        if(!sectionTitle){
-            return res.status(400).json({ success: false, data: 'Section Title is required' })
-        }
-        if(!overview){
-            return res.status(400).json({ success: false, data: 'Overview of course section is required' })
-        }
-        if(!courseNote){
-            return res.status(400).json({ success: false, data: 'Section Course note is required' })
-        }
-        if(assestLink && !assestType){
-            return res.status(400).json({ success: false, data: 'Provide a corresponding assest type for media assest' })
-        }
-        if(assestLink && !["video", "audio", "image", "pdf"].includes(assestType)){
-            return res.status(400).json({ success: false, data: "Invalid assest Type, type should be either: 'video', 'audio', 'image', 'pdf'"})
-        }
-        const getCourse = await CourseModel.findOne({ slugCode: courseID })
-        if(!getCourse){
-            return res.status(404).json({ success: false, data: 'No Course with this ID found' })
+        if (assestLink && !["video", "audio", "image", "pdf"].includes(assestType)) {
+            return res.status(400).json({ success: false, data: "Invalid asset type. Allowed: 'video', 'audio', 'image', 'pdf'" });
         }
 
-        //ONLY ALLOW OWNER OF COURSE TO UPLOAD THEIR COURSE
-        if(_id.toString() !== getCourse.instructorId.toString() ){
-            return res.status(403).json({ success: false, data: 'Not Authorized: Access Denied' })
+        const getCourse = await CourseModel.findOne({ slugCode: courseID });
+        if (!getCourse) return res.status(404).json({ success: false, data: 'No Course with this ID found' });
+
+        if (_id.toString() !== getCourse.instructorId.toString()) {
+            return res.status(403).json({ success: false, data: 'Not Authorized: Access Denied' });
         }
 
-        const getCourseContent = await CourseContentModel.findOne({ slugCode: courseID })
-
-        if(!getCourseContent){
-            const newCourseContent = await CourseContentModel.create({
-                courseId: getCourse?._id, slugCode: courseID
-            })
-
-            const data = {
-                sectionTitle, overview, courseNote, assestLink, assestType, assignment
+        // Convert courseNote to string if it's an array/object
+        let processedNote = courseNote;
+        if (typeof courseNote === "object") {
+            try {
+                processedNote = JSON.stringify(courseNote);
+            } catch (err) {
+                return res.status(400).json({ success: false, data: "Invalid courseNote format" });
             }
-
-            newCourseContent.sections.push(data)
-            await newCourseContent.save()
-
-            return res.status(201).json({ success: true, data: 'Course content created' })
         }
 
+        const getCourseContent = await CourseContentModel.findOne({ slugCode: courseID });
         const data = {
-            sectionTitle, overview, courseNote, assestLink, assestType, assignment
+            sectionTitle, overview, courseNote: processedNote, assestLink, assestType, assignment
+        };
+
+        if (!getCourseContent) {
+            const newCourseContent = await CourseContentModel.create({
+                courseId: getCourse?._id, slugCode: courseID, sections: [data]
+            });
+            return res.status(201).json({ success: true, data: 'Course content created', content: newCourseContent });
         }
 
-        getCourseContent.sections.push(data)
-        await getCourseContent.save()
+        getCourseContent.sections.push(data);
+        await getCourseContent.save();
 
-        return res.status(201).json({ success: true, data: 'Course content created' })
+        return res.status(201).json({ success: true, data: 'Course content added', content: getCourseContent });
+
     } catch (error) {
-        console.log('UNABLE TO UPLAOD COURSE CONTENT', error)
-        res.status(500).json({ success: false, data: 'Unable to upload course content' })
+        console.error('UNABLE TO UPLOAD COURSE CONTENT', error);
+        res.status(500).json({ success: false, data: 'Unable to upload course content' });
     }
 }
 
 // EDIT COURSE CONTENT
 export async function updateCourseContent(req, res) {
-    const { courseID, chapterId, sectionTitle, overview, courseNote, assestLink, assestType, assignment } = req.body;
-    const { _id } = req.user;
-    if(assestLink && !assestType){
-        return res.status(400).json({ success: false, data: 'Provide a corresponding assest type for media assest' })
-    }
-    if(assestLink && assestType !== 'video' || assestType !== 'audio' || assestType !== 'image' || assestType !== 'pdf'){
-        return res.status(400).json({ success: false, data: "Invalid assest Type, type should be either: 'video', 'audio', 'image', 'pdf'"})
-    }
     try {
-        // Fetch the course
-        const getCourse = await CourseModel.findOne({ slugCode: courseID });
-        if (!getCourse) {
-            return res.status(404).json({ success: false, data: 'No course with this ID found' });
+        const { courseID, chapterId, sectionTitle, overview, courseNote, assestLink, assestType, assignment } = req.body;
+        const { _id } = req.user;
+
+        if (assestLink && !assestType) {
+            return res.status(400).json({ success: false, data: 'Provide a corresponding asset type for media asset' });
+        }
+        if (assestLink && !["video", "audio", "image", "pdf"].includes(assestType)) {
+            return res.status(400).json({ success: false, data: "Invalid asset type. Allowed: 'video', 'audio', 'image', 'pdf'" });
         }
 
-        // Only allow the owner of the course to upload their course
-        if (!_id.equals(getCourse.instructorId)) {
+        const getCourse = await CourseModel.findOne({ slugCode: courseID });
+        if (!getCourse) return res.status(404).json({ success: false, data: 'No course with this ID found' });
+
+        if (_id.toString() !== getCourse.instructorId.toString()) {
             return res.status(403).json({ success: false, data: 'Not Authorized: Access Denied' });
         }
 
-        // Check if the course content exists
         const getCourseContent = await CourseContentModel.findOne({ slugCode: courseID });
         if (!getCourseContent) {
             return res.status(404).json({ success: false, data: 'Course content with this ID does not exist' });
         }
 
-        // Update the specific section using chapterId (_id of the section)
+        // Convert courseNote to string if it's an array/object
+        let processedNote = courseNote;
+        if (typeof courseNote === "object") {
+            try {
+                processedNote = JSON.stringify(courseNote);
+            } catch (err) {
+                return res.status(400).json({ success: false, data: "Invalid courseNote format" });
+            }
+        }
+
         const updatedContent = await CourseContentModel.findOneAndUpdate(
-            { slugCode: courseID, "sections._id": chapterId }, // Match the course and specific section
+            { slugCode: courseID, "sections._id": chapterId },
             {
                 $set: {
                     "sections.$.sectionTitle": sectionTitle,
                     "sections.$.overview": overview,
-                    "sections.$.courseNote": courseNote,
+                    "sections.$.courseNote": processedNote,
                     "sections.$.assestLink": assestLink,
                     "sections.$.assestType": assestType,
                     "sections.$.assignment": assignment,
                 },
             },
-            { new: true } 
+            { new: true }
         );
 
         if (!updatedContent) {
