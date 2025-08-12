@@ -163,7 +163,7 @@ const generalNamespace = io.of('/general');
 
 export const accountConnections = new Map()
 // Apply socket-specific authentication middleware for General
-//generalNamespace.use(AuthenticateGeneralSocket);
+generalNamespace.use(AuthenticateGeneralSocket);
 generalNamespace.on('connection', (socket) => {
   console.log('General Socket Connected connected:', socket.id);
   const { instructorID } = socket.user || {}

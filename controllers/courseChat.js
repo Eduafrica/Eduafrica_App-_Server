@@ -6,7 +6,7 @@ import CourseContentModel from "../models/CourseContent.js"
 export async function courseGroupChat({ data, socket, res }) {
     const { courseSlug, message } = data
     console.log('SOCKET CHAT DATA', data)
-    const { studentID, organisationID, instructorID, staffID, name, profileImg, accountType } = socket.user
+    const { studentID, organisationID, instructorID, staffID, name, profileImg, accountType } = socket.user || {}
     try {
         let getCourse 
         getCourse = await CourseChatModel.findOne({ courseSlug })
