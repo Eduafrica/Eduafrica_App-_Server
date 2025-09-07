@@ -124,7 +124,7 @@ export async function registerUser(req, res) {
         const generatedStudentCode = await generateUniqueCode(6)
         console.log('STUDENT CODE>>', `EA${generatedStudentCode}`)
 
-        const user = await StudentModel.create({ name, password, email, displayName, allowNotifications, intrestedCourses, preferredLanguage, phoneNumber, country, studentID: `EA${generatedStudentCode}` });
+        const user = await StudentModel.create({ name, password, email: email.toLowerCase(), displayName, allowNotifications, intrestedCourses, preferredLanguage, phoneNumber, country, studentID: `EA${generatedStudentCode}` });
         console.log('USER CREATED');
         if(allowNotifications && data){
             const deviceToken = data.deviceToken
@@ -168,7 +168,7 @@ export async function resendOtp(req, res) {
     if(!email) return res.status(400).json({ success: false, data: 'Email address is required' })
     
     try {
-        const getUser = await StudentModel.findOne({ email })
+        const getUser = await StudentModel.findOne({ email: email.toLowerCase() })
         if(!getUser) return res.status(404).json({ succes: false, data: 'Email does not exist' })
         //if(getUser.verified) return res.status(200).json({ success: false, data: 'Account already verified' })
         
@@ -208,7 +208,7 @@ export async function login(req, res) {
     }
 
     try {
-        const user = await StudentModel.findOne({ email: email }).select('+password')
+        const user = await StudentModel.findOne({ email: email.toLowerCase() }).select('+password')
     
         if(!user){
             return res.status(401).json({ success: false, data: 'Invalid User'})
@@ -988,7 +988,11 @@ export async function getStudentStats(req, res) {
 //dele
 export async function dele(req, res) {
     try {
-        const ed = await StudentModel.findOneAndDelete({ email: 'Dummy@gmail.com' })
+        const ed = await StudentModel.findOneAndDelete({ email: 'abayomibusiness410@gmail.com' })
+        const ed2 = await StudentModel.findOneAndDelete({ email: 'agiriayuba246@gmail.com' })
+        const ed3 = await StudentModel.findOneAndDelete({ email: 'ayyubagiri@educonnectafrica.com' })
+        const ed4 = await StudentModel.findOneAndDelete({ email: 'ayubaagiri1@gmail.com' })
+
 
         res.status(200).json({ success: true, data: 'SUccess' })
     } catch (error) {

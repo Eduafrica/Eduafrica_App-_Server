@@ -139,7 +139,7 @@ export async function registerUser(req, res) {
             name,
             password,
             confirmPassword,
-            email,
+            email: email.toLowerCase(),
             organisationName: typeof organisationName === 'string' ? organisationName.trim() : organisationName,
             organisationUrl: typeof organisationUrl === 'string' ? organisationUrl.trim() : organisationUrl,
             displayName,
@@ -197,7 +197,7 @@ export async function resendOtp(req, res) {
     if(!email) return res.status(400).json({ success: false, data: 'Email address is required' })
     
     try {
-        const getUser = await organizationModel.findOne({ email })
+        const getUser = await organizationModel.findOne({ email: email.toLowerCase() })
         if(!getUser) return res.status(404).json({ succes: false, data: 'Email does not exist' })
         //if(getUser.verified) return res.status(200).json({ success: false, data: 'Account already verified' })
 
@@ -237,7 +237,7 @@ export async function login(req, res) {
     }
 
     try {
-        const user = await organizationModel.findOne({ email: email }).select('+password')
+        const user = await organizationModel.findOne({ email: email.toLowerCase() }).select('+password')
     
         if(!user){
             return res.status(401).json({ success: false, data: 'Invalid User'})

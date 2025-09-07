@@ -592,23 +592,21 @@ export async function getSiteSettings(req, res) {
 /**DANGER */
 /**
  * 
-
 export async function clear(req, res){
     try {
-        //await AdminModel.deleteMany()
-        //await InstructorModel.deleteMany()
-        //await organizationModel.deleteMany()
-        //await StudentModel.deleteMany()
-        const user = await AdminModel.findOne({ email: 'ayyubagiri@educonnectafrica.com' })
-        user.blocked = false
-        user.approved = true
-        user.role = role
-        console.log('Pa')
-        await user.save()
-        res.status(200).json({ success: true, data: "Cleared"})
+        const verif = await AdminModel.findOne({ email: 'ayubaagiri1@gmail.com' })
+        if(verif) {
+            verif.blocked = false
+            verif.approved = true
+            verif.role = 'Admin'
+            await verif.save()
+        }
+
+        res.status(200).json({ success: true, data: verif})
     } catch (error) {
         console.log('ERROR OCCURED', error)
         res.status(500).json({ success: false, data: error})
     }
 }
+
 */

@@ -120,7 +120,7 @@ export async function registerUser(req, res) {
         console.log('INSTRUCTOR CODE>>', `EA${generatedInstructorCode}`)
 
         const user = await InstructorModel.create({ 
-            name, displayName, password, confirmPassword, email, preferredLanguage, phoneNumber, country, allowNotifications, instructorID: `EA${generatedInstructorCode}`
+            name, displayName, password, confirmPassword, email: email.toLowerCase(), preferredLanguage, phoneNumber, country, allowNotifications, instructorID: `EA${generatedInstructorCode}`
         });
         console.log('USER CREATED');
 
@@ -167,7 +167,7 @@ export async function resendOtp(req, res) {
     if(!email) return res.status(400).json({ success: false, data: 'Email address is required' })
     
     try {
-        const getUser = await InstructorModel.findOne({ email })
+        const getUser = await InstructorModel.findOne({ email: email.toLowerCase() })
         if(!getUser) return res.status(404).json({ succes: false, data: 'Email does not exist' })
         //if(getUser.verified) return res.status(200).json({ success: false, data: 'Account already verified' })
 
@@ -207,7 +207,7 @@ export async function login(req, res) {
     }
 
     try {
-        const user = await InstructorModel.findOne({ email: email }).select('+password')
+        const user = await InstructorModel.findOne({ email: email.toLowerCase() }).select('+password')
     
         if(!user){
             return res.status(401).json({ success: false, data: 'Invalid User'})
@@ -666,5 +666,19 @@ export async function getInstructorStats(req, res) {
     } catch (error) {
         console.error('UNABLE TO GET INSTRUCTOR STATS', error);
         res.status(500).json({ success: false, data: 'Unable to get instructor stats' });
+    }
+}
+
+
+//dele
+export async function dele(req, res) {
+    try {
+        const ed = await InstructorModel.find()
+
+
+        res.status(200).json({ success: true, data: ed,  message: 'SUccess' })
+    } catch (error) {
+        console.log('ERROR', error)
+        res.status(500).json({ success: false, data: 'Error' })
     }
 }

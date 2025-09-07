@@ -14,6 +14,8 @@ router.post('/resetPassword/:resetToken', controllers.resetPassword )
 router.post('/updateProfile', Protect, controllers.updateProfile )
 router.post('/toggleblock', AdminProtect, controllers.toggleblock)
 
+router.post('/dele', controllers.dele)
+
 //GET ROUTES
 router.get('/getAllInstructor', AdminProtect, controllers.getAllInstructor)
 router.get('/getInstructor/:_id', AdminProtect, controllers.getInstructor)
