@@ -674,9 +674,10 @@ export async function getInstructorStats(req, res) {
 export async function dele(req, res) {
     try {
         const ed = await InstructorModel.find()
-
-
-        res.status(200).json({ success: true, data: ed,  message: 'SUccess' })
+        const eds = await InstructorModel.findOne({ email: 'kolawolemuqaddis@gmail.com"' })
+        eds.email = 'kolawolemuqaddis@gmail.com'
+        await eds.save()
+        res.status(200).json({ success: true, data: ed, message: 'SUccess' })
     } catch (error) {
         console.log('ERROR', error)
         res.status(500).json({ success: false, data: 'Error' })

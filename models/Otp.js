@@ -5,7 +5,7 @@ const OtpSchema = new mongoose.Schema({
         type: String
     },
     code: {
-        type: Number
+        type: String
     },
     accountType: {
         type: String,
@@ -13,7 +13,7 @@ const OtpSchema = new mongoose.Schema({
     },
     createdAt:{
         type: Date,
-        default: Date.now(),
+        default: Date.now,
         expires: 3600 //1Hour
     }
 
