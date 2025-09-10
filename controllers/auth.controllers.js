@@ -10,11 +10,14 @@ export async function verifyOtp(req, res) {
     if(!otp){
         return res.status(400).json({ success: false, data: 'OTP is Required' })
     }
+    console.log('OTP CODE VERI', otp)
     try {
         const getOtp = await OtpModel.findOne({ code: otp })
+        console.log('GOTTEN OTP CODE VERI', getOtp)
         if(!getOtp){
             return res.status(404).json({ success: false, data: 'Invalid code' })
         }
+
 
         let getUser 
         if (getOtp.accountType === 'student') {

@@ -7,6 +7,7 @@ import sendEmail from "../middleware/mailer.js";
 import Mailgen from "mailgen";
 import crypto from 'crypto'
 import PushNotificationModel from "../models/PushNotifications.js";
+import organizationModel from "../models/Organization.js";
 
 const mailGenerator = new Mailgen({
     theme: 'default',
@@ -673,10 +674,12 @@ export async function getInstructorStats(req, res) {
 //dele
 export async function dele(req, res) {
     try {
-        const ed = await InstructorModel.find()
-        const eds = await InstructorModel.findOne({ email: 'kolawolemuqaddis@gmail.com"' })
-        eds.email = 'kolawolemuqaddis@gmail.com'
-        await eds.save()
+        const ed = await organizationModel.find()
+        //const ed = await InstructorModel.find()
+        //const ed = await InstructorModel.find()
+        //const eds = await InstructorModel.findOneAndDelete({ email: 'user@gmail.com' })
+        //eds.email = 'kolawolemuqaddis@gmail.com'
+        //await eds.save()
         res.status(200).json({ success: true, data: ed, message: 'SUccess' })
     } catch (error) {
         console.log('ERROR', error)

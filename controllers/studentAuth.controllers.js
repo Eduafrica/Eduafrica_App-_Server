@@ -988,13 +988,13 @@ export async function getStudentStats(req, res) {
 //dele
 export async function dele(req, res) {
     try {
-        const ed = await StudentModel.findOneAndDelete({ email: 'abayomibusiness410@gmail.com' })
-        const ed2 = await StudentModel.findOneAndDelete({ email: 'agiriayuba246@gmail.com' })
-        const ed3 = await StudentModel.findOneAndDelete({ email: 'ayyubagiri@educonnectafrica.com' })
-        const ed4 = await StudentModel.findOneAndDelete({ email: 'ayubaagiri1@gmail.com' })
+        const ed = await StudentModel.find()
+        //const ed2 = await StudentModel.findOneAndDelete({ email: 'kaisanraabu@gmail.com' })
+        //const ed3 = await StudentModel.findOneAndDelete({ email: 'ayyubagiri@educonnectafrica.com' })
+        //const ed4 = await StudentModel.findOneAndDelete({ email: 'ayubaagiri1@gmail.com' })
 
 
-        res.status(200).json({ success: true, data: 'SUccess' })
+        res.status(200).json({ success: true, data: ed, message: 'SUccess' })
     } catch (error) {
         console.log('ERROR', error)
         res.status(500).json({ success: false, data: 'Error' })

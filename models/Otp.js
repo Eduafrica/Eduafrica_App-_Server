@@ -5,7 +5,9 @@ const OtpSchema = new mongoose.Schema({
         type: String
     },
     code: {
-        type: String
+        type: String,
+        required: [ true, 'OTP is required' ],
+        unique: [ true, 'OTP must be unique' ]
     },
     accountType: {
         type: String,
